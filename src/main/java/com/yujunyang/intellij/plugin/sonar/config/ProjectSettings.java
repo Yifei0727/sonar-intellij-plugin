@@ -21,11 +21,7 @@
 
 package com.yujunyang.intellij.plugin.sonar.config;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import com.intellij.openapi.components.PersistentStateComponent;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;
 import com.intellij.openapi.project.Project;
@@ -33,17 +29,24 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.xmlb.XmlSerializerUtil;
 import com.intellij.util.xmlb.annotations.MapAnnotation;
 import com.intellij.util.xmlb.annotations.Tag;
+import com.yujunyang.intellij.plugin.sonar.core.SeverityType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-@State(name = "SonarAnalyzer-Project", storages = { @Storage("intellij-sonar-plugin-project.xml") })
-public class ProjectSettings implements PersistentStateComponent<ProjectSettings>  {
+import java.util.HashMap;
+import java.util.Map;
+
+@State(name = "SonarAnalyzer-Project", storages = {@Storage("intellij-sonar-plugin-project.xml")})
+public class ProjectSettings implements PersistentStateComponent<ProjectSettings> {
 
     @Tag
     public String sonarQubeConnectionName;
 
     @Tag
     public boolean inheritedFromApplication = true;
+
+    @Tag
+    public SeverityType severityType;
 
     @Tag("sonarProperties")
     @MapAnnotation(
@@ -75,6 +78,11 @@ public class ProjectSettings implements PersistentStateComponent<ProjectSettings
     }
 
     public static ProjectSettings getInstance(Project project) {
-        return ServiceManager.getService(project, ProjectSettings.class);
+        return project.getService(ProjectSettings.class);
+    }
+
+    @Nullable
+    public SeverityType getSeverityType() {
+        return severityType;
     }
 }

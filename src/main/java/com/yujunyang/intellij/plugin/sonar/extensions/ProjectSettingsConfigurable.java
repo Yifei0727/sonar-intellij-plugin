@@ -74,6 +74,9 @@ public class ProjectSettingsConfigurable implements Configurable {
                 return true;
             }
         }
+        if (projectSettings.severityType != projectSettingsPanel.getSeverityType()) {
+            return true;
+        }
 
         return false;
     }
@@ -84,6 +87,7 @@ public class ProjectSettingsConfigurable implements Configurable {
         projectSettings.sonarQubeConnectionName = projectSettingsPanel.getConnectionName();
         projectSettings.inheritedFromApplication = projectSettingsPanel.isInheritedFromApplication();
         projectSettings.sonarProperties = projectSettingsPanel.getProperties();
+        projectSettings.severityType = projectSettingsPanel.getSeverityType();
     }
 
     @Override

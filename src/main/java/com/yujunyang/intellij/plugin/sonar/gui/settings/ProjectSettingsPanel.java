@@ -21,29 +21,9 @@
 
 package com.yujunyang.intellij.plugin.sonar.gui.settings;
 
-import java.awt.BorderLayout;
-import java.awt.Dimension;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.stream.Collectors;
-import javax.swing.Box;
-import javax.swing.BoxLayout;
-import javax.swing.JButton;
-import javax.swing.JComponent;
-import javax.swing.JLabel;
-import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableModel;
-
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.DataManager;
-import com.intellij.openapi.actionSystem.ActionGroup;
-import com.intellij.openapi.actionSystem.ActionManager;
-import com.intellij.openapi.actionSystem.ActionToolbar;
-import com.intellij.openapi.actionSystem.AnAction;
-import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.DefaultActionGroup;
+import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.openapi.options.ex.Settings;
 import com.intellij.openapi.project.Project;
@@ -57,19 +37,31 @@ import com.intellij.ui.table.JBTable;
 import com.intellij.util.ui.JBUI;
 import com.yujunyang.intellij.plugin.sonar.config.ProjectSettings;
 import com.yujunyang.intellij.plugin.sonar.config.WorkspaceSettings;
+import com.yujunyang.intellij.plugin.sonar.core.SeverityType;
 import com.yujunyang.intellij.plugin.sonar.extensions.ApplicationSettingsConfigurable;
 import com.yujunyang.intellij.plugin.sonar.gui.common.UIUtils;
 import com.yujunyang.intellij.plugin.sonar.gui.dialog.AddSonarPropertyDialog;
 import com.yujunyang.intellij.plugin.sonar.resources.ResourcesLoader;
 import org.jetbrains.annotations.NotNull;
 
-public class ProjectSettingsPanel extends JBPanel {
-    private Project project;
-    private ComboBox connectionNameComboBox;
+import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableModel;
+import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+public class ProjectSettingsPanel extends JBPanel<ProjectSettingsPanel> {
+    private final Project project;
+    private ComboBox<String> connectionNameComboBox;
     private JBCheckBox inheritedFromApplicationCheckBox;
     private JBTable propertiesTable;
     private DefaultTableModel propertiesTableModel;
-    private Map<String, String> properties = new HashMap<>();
+    private final Map<String, String> properties = new HashMap<>();
+    private ComboBox<SeverityType> severityComboBox;
 
     public ProjectSettingsPanel(Project project) {
         this.project = project;
@@ -101,18 +93,32 @@ public class ProjectSettingsPanel extends JBPanel {
         inheritedFromApplicationCheckBox = new JBCheckBox(ResourcesLoader.getString("settings.project.checkboxLabel"));
         inheritedFromApplicationCheckBox.setAlignmentX(LEFT_ALIGNMENT);
         add(inheritedFromApplicationCheckBox);
+        // 新增 问题级别过滤配置
+        initSeverityComboBox();
 
         // 这个不用主动调用，settings窗口打开时就会调用重写的reset方法，内部就是下面的reset
         // reset();
     }
 
+    private void initSeverityComboBox() {
+        JBPanel<ProjectSettingsPanel> panel = new JBPanel<>(new BorderLayout());
+        panel.setAlignmentX(LEFT_ALIGNMENT);
+        add(panel);
+        panel.add(new JBLabel(ResourcesLoader.getString("settings.project.severityComboBoxLabel") + " "), BorderLayout.WEST);
+
+        severityComboBox = new ComboBox<>(SeverityType.values());
+        severityComboBox.setEditable(false);
+        panel.add(severityComboBox, BorderLayout.CENTER);
+        panel.setMaximumSize(new Dimension(Integer.MAX_VALUE, panel.getPreferredSize().height));
+    }
+
     private void initConnectionName() {
-        JBPanel panel = new JBPanel(new BorderLayout());
+        JBPanel<ProjectSettingsPanel> panel = new JBPanel<>(new BorderLayout());
         panel.setAlignmentX(LEFT_ALIGNMENT);
         add(panel);
         panel.add(new JBLabel(ResourcesLoader.getString("settings.project.connectionBindComboBoxLabel") + " "), BorderLayout.WEST);
 
-        connectionNameComboBox = new ComboBox(WorkspaceSettings.getInstance().sonarQubeConnections.stream().map(n -> n.name).toArray());
+        connectionNameComboBox = new ComboBox<>(WorkspaceSettings.getInstance().sonarQubeConnections.stream().map(n -> n.name).toArray(String[]::new));
         connectionNameComboBox.setEditable(false);
         panel.add(connectionNameComboBox, BorderLayout.CENTER);
 
@@ -143,7 +149,7 @@ public class ProjectSettingsPanel extends JBPanel {
     private void initSonarProperties() {
         addTableLabel(ResourcesLoader.getString("settings.sonarScannerProperties.tableTitle"));
 
-        propertiesTableModel = createDefaultTableModel(new String[] { "Name", "Value" });
+        propertiesTableModel = createDefaultTableModel(new String[]{"Name", "Value"});
 
         DefaultActionGroup actionGroup = new DefaultActionGroup();
         actionGroup.add(new AnAction(ResourcesLoader.getString("settings.action.add"), "", AllIcons.General.Add) {
@@ -159,6 +165,7 @@ public class ProjectSettingsPanel extends JBPanel {
             public void update(@NotNull AnActionEvent e) {
                 e.getPresentation().setEnabled(propertiesTable.getSelectionModel().getAnchorSelectionIndex() > -1);
             }
+
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {
                 int selectionIndex = propertiesTable.getSelectionModel().getAnchorSelectionIndex();
@@ -173,6 +180,7 @@ public class ProjectSettingsPanel extends JBPanel {
             public void update(@NotNull AnActionEvent e) {
                 e.getPresentation().setEnabled(propertiesTable.getSelectionModel().getAnchorSelectionIndex() > -1);
             }
+
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {
                 int selectionIndex = propertiesTable.getSelectionModel().getAnchorSelectionIndex();
@@ -189,7 +197,7 @@ public class ProjectSettingsPanel extends JBPanel {
     }
 
     private JBTable createTable(String emptyText, TableModel tableModel, ActionGroup actionGroup) {
-        JBPanel tablePanel = new JBPanel(new BorderLayout());
+        JBPanel<ProjectSettingsPanel> tablePanel = new JBPanel<>(new BorderLayout());
         tablePanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 200));
         tablePanel.setPreferredSize(new Dimension(Integer.MAX_VALUE, 200));
         tablePanel.setBorder(JBUI.Borders.customLine(UIUtils.borderColor(), 1));
@@ -233,7 +241,7 @@ public class ProjectSettingsPanel extends JBPanel {
 
     private void addSonarScannerProperty(Pair<String, String> property) {
         properties.put(property.first, property.second);
-        propertiesTableModel.addRow(new Object[] { property.first, property.second });
+        propertiesTableModel.addRow(new Object[]{property.first, property.second});
     }
 
     private void updateSonarScannerProperty(int selectionIndex, Pair<String, String> property) {
@@ -245,6 +253,7 @@ public class ProjectSettingsPanel extends JBPanel {
     public void reset() {
         ProjectSettings projectSettings = ProjectSettings.getInstance(project);
         connectionNameComboBox.setSelectedItem(projectSettings.getSonarQubeConnectionName());
+        severityComboBox.setSelectedItem(projectSettings.getSeverityType());
 
         properties.clear();
         int propertiesTableRowCount = propertiesTableModel.getRowCount();
@@ -254,9 +263,17 @@ public class ProjectSettingsPanel extends JBPanel {
         Map<String, String> existProperties = projectSettings.sonarProperties;
         for (Map.Entry<String, String> item : existProperties.entrySet()) {
             properties.put(item.getKey(), item.getValue());
-            propertiesTableModel.addRow(new Object[] { item.getKey(), item.getValue() });
+            propertiesTableModel.addRow(new Object[]{item.getKey(), item.getValue()});
         }
 
         inheritedFromApplicationCheckBox.setSelected(projectSettings.inheritedFromApplication);
+    }
+
+    public SeverityType getSeverityType() {
+        Object selectedItem = severityComboBox.getSelectedItem();
+        if (null == selectedItem) {
+            return SeverityType.ANY;
+        }
+        return SeverityType.valueOf(selectedItem.toString());
     }
 }
