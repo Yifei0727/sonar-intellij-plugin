@@ -21,11 +21,6 @@
 
 package com.yujunyang.intellij.plugin.sonar.gui.toolwindow;
 
-import java.awt.BorderLayout;
-import java.awt.CardLayout;
-import java.util.Arrays;
-import java.util.List;
-
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.OnePixelSplitter;
 import com.intellij.ui.components.JBPanel;
@@ -37,8 +32,12 @@ import com.yujunyang.intellij.plugin.sonar.messages.IssueClickListener;
 import com.yujunyang.intellij.plugin.sonar.messages.MessageBusManager;
 import com.yujunyang.intellij.plugin.sonar.resources.ResourcesLoader;
 
-public class IssueDetailPanel extends JBPanel implements IssueClickListener, DuplicatedBlocksIssueClickListener {
-    private Project project;
+import java.awt.*;
+import java.util.Collections;
+import java.util.List;
+
+public class IssueDetailPanel extends JBPanel<IssueDetailPanel> implements IssueClickListener, DuplicatedBlocksIssueClickListener {
+    private final Project project;
     private CardLayout layout;
     private IssueCodePanel codePanel;
     private IssueDescriptionPanel descriptionPanel;
@@ -46,8 +45,8 @@ public class IssueDetailPanel extends JBPanel implements IssueClickListener, Dup
     public IssueDetailPanel(Project project) {
         this.project = project;
         init();
-        MessageBusManager.subscribe(project, this, IssueClickListener.TOPIC, this::click);
-        MessageBusManager.subscribe(project, this, DuplicatedBlocksIssueClickListener.TOPIC, this::click);
+        MessageBusManager.subscribe(project, this, IssueClickListener.TOPIC, this);
+        MessageBusManager.subscribe(project, this, DuplicatedBlocksIssueClickListener.TOPIC, this);
     }
 
     @Override
@@ -62,8 +61,8 @@ public class IssueDetailPanel extends JBPanel implements IssueClickListener, Dup
     @Override
     public void click(Issue issue) {
         layout.show(this, "DETAIL");
-        codePanel.show(Arrays.asList(issue));
-        descriptionPanel.show(Arrays.asList(issue));
+        codePanel.show(Collections.singletonList(issue));
+        descriptionPanel.show(Collections.singletonList(issue));
         revalidate();
         repaint();
     }
@@ -74,7 +73,7 @@ public class IssueDetailPanel extends JBPanel implements IssueClickListener, Dup
 
         add("EMPTY", new MessagePanel(ResourcesLoader.getString("toolWindow.report.preview.emptyText")));
 
-        JBPanel detailPanel = new JBPanel(new BorderLayout());
+        JBPanel<IssueDetailPanel> detailPanel = new JBPanel<>(new BorderLayout());
         add("DETAIL", detailPanel);
 
         OnePixelSplitter listAndCurrentSplitter = new OnePixelSplitter();

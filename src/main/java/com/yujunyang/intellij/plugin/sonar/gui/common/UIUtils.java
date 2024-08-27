@@ -22,27 +22,6 @@
 package com.yujunyang.intellij.plugin.sonar.gui.common;
 
 
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Container;
-import java.awt.Dimension;
-import java.awt.FlowLayout;
-import java.awt.Font;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import javax.annotation.Nonnull;
-import javax.swing.BorderFactory;
-import javax.swing.BoxLayout;
-import javax.swing.Icon;
-import javax.swing.JComponent;
-import javax.swing.ScrollPaneConstants;
-import javax.swing.SwingConstants;
-import javax.swing.SwingUtilities;
-
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.EditorFactory;
@@ -55,6 +34,7 @@ import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Pair;
 import com.intellij.psi.PsiFile;
+import com.intellij.ui.JBColor;
 import com.intellij.ui.TitledSeparator;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBPanel;
@@ -62,9 +42,16 @@ import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.JBTextArea;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
+import com.yujunyang.intellij.plugin.sonar.core.SeverityType;
 import com.yujunyang.intellij.plugin.sonar.resources.ResourcesLoader;
 import icons.PluginIcons;
 import org.jetbrains.annotations.NotNull;
+
+import javax.annotation.Nonnull;
+import javax.swing.*;
+import java.awt.*;
+import java.util.List;
+import java.util.*;
 
 
 public final class UIUtils {
@@ -162,7 +149,7 @@ public final class UIUtils {
         }
 
         if (component instanceof Container) {
-            for (Component c : ((Container)component).getComponents()) {
+            for (Component c : ((Container) component).getComponents()) {
                 setBackgroundRecursively(c, color);
             }
         }
@@ -232,7 +219,7 @@ public final class UIUtils {
     public static void addPaneWrappedTipLabel(JComponent parent, String text) {
         JBPanel labelPane = new JBPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
         JBLabel label = new JBLabel(text);
-        label.setForeground(Color.GRAY);
+        label.setForeground(JBColor.GRAY);
         labelPane.add(label);
         parent.add(labelPane);
     }
@@ -241,35 +228,35 @@ public final class UIUtils {
         JBLabel tagLabel = new JBLabel(tag);
         tagLabel.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createMatteBorder(1, 1, 1, 1, borderColor()),
-                BorderFactory.createEmptyBorder(0, 2, 0,2)));
+                BorderFactory.createEmptyBorder(0, 2, 0, 2)));
         tagLabel.setForeground(UIUtils.labelForegroundColor());
         return tagLabel;
     }
 
     public static void showErrorDialogInThread(String message) {
         SwingUtilities.invokeLater(() -> {
-            Messages.showDialog(message, "提示", new String[] { "确定" }, 0, Messages.getErrorIcon());
+            Messages.showDialog(message, "提示", new String[]{"确定"}, 0, Messages.getErrorIcon());
         });
     }
 
     public static void showErrorDialog(String message) {
-        Messages.showDialog(message, "提示", new String[] { "确定" }, 0, Messages.getErrorIcon());
+        Messages.showDialog(message, "提示", new String[]{"确定"}, 0, Messages.getErrorIcon());
     }
 
     public static int showConfirmDialog(String message) {
         return Messages.showDialog(message, "提示",
-                new String[] { "确认", "取消" }, 1, Messages.getQuestionIcon());
+                                   new String[]{"确认", "取消"}, 1, Messages.getQuestionIcon());
     }
 
     public static void showWarningDialog(String message) {
-        Messages.showDialog(message, "提示", new String[] { "确定" }, 0, Messages.getWarningIcon());
+        Messages.showDialog(message, "提示", new String[]{"确定"}, 0, Messages.getWarningIcon());
     }
 
     public static Color borderColor() {
         if (UIUtil.isUnderDarcula()) {
             return new Color(81, 81, 81);
         }
-        return Color.LIGHT_GRAY;
+        return JBColor.LIGHT_GRAY;
     }
 
     public static Color backgroundColor() {
@@ -332,8 +319,8 @@ public final class UIUtils {
         return ret;
     }
 
-    public static JBPanel createBoxLayoutPanel(int axis) {
-        JBPanel panel = new JBPanel();
+    public static <T extends JBPanel<T>> JBPanel<T> createBoxLayoutPanel(int axis) {
+        JBPanel<T> panel = new JBPanel<>();
         BoxLayout layout = new BoxLayout(panel, axis);
         panel.setLayout(layout);
         return panel;

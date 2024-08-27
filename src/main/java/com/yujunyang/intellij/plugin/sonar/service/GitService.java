@@ -21,20 +21,20 @@
 
 package com.yujunyang.intellij.plugin.sonar.service;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vcs.changes.ChangeListManager;
 import com.intellij.openapi.vcs.changes.ChangeListManagerEx;
 import com.intellij.psi.PsiFile;
 import com.yujunyang.intellij.plugin.sonar.common.IdeaUtils;
-import git4idea.GitUtil;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
+
 public class GitService {
-    private Project project;
+    private final Project project;
 
     public GitService(Project project) {
         this.project = project;
@@ -43,9 +43,9 @@ public class GitService {
     public List<PsiFile> getChangedFiles() {
         ChangeListManagerEx changeListManager = (ChangeListManagerEx) ChangeListManager.getInstance(project);
         return changeListManager.getAffectedPaths().stream().
-                map(n -> IdeaUtils.getPsiFile(project, n)).
-                filter(n -> n != null).
-                collect(Collectors.toList());
+                                map(n -> IdeaUtils.getPsiFile(project, n)).
+                                filter(Objects::nonNull).
+                                collect(Collectors.toList());
     }
 
     public static GitService getInstance(@NotNull Project project) {

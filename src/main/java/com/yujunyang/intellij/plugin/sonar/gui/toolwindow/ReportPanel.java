@@ -21,9 +21,6 @@
 
 package com.yujunyang.intellij.plugin.sonar.gui.toolwindow;
 
-import java.awt.BorderLayout;
-import java.awt.CardLayout;
-
 import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.OnePixelSplitter;
@@ -43,11 +40,13 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.sonarsource.scanner.api.LogOutput;
 
-public class ReportPanel extends JBPanel implements AnalysisStateListener, ClearListener {
-    private Project project;
+import java.awt.*;
+
+public class ReportPanel extends JBPanel<ReportPanel> implements AnalysisStateListener, ClearListener {
+    private final Project project;
 
     private LeftToolbarPanel leftToolbarPanel;
-    private JBPanel bodyPanel;
+    private JBPanel<ReportPanel> bodyPanel;
     private CardLayout bodyPanelLayout;
 
     private IssuesPanel issuesPanel;
@@ -58,14 +57,14 @@ public class ReportPanel extends JBPanel implements AnalysisStateListener, Clear
         setLayout(new BorderLayout());
         init();
         MessageBusManager.subscribeAnalysisState(project, this, this);
-        MessageBusManager.subscribe(project, this, ClearListener.TOPIC, this::clear);
+        MessageBusManager.subscribe(project, this, ClearListener.TOPIC, this);
     }
 
     private void init() {
         leftToolbarPanel = new LeftToolbarPanel();
         add(leftToolbarPanel, BorderLayout.WEST);
 
-        bodyPanel = new JBPanel();
+        bodyPanel = new JBPanel<>();
         bodyPanelLayout = new CardLayout();
         bodyPanel.setLayout(bodyPanelLayout);
         add(bodyPanel, BorderLayout.CENTER);
@@ -98,7 +97,7 @@ public class ReportPanel extends JBPanel implements AnalysisStateListener, Clear
 
     @Override
     public void analysisAborted() {
-
+        leftToolbarPanel.updateUI();
     }
 
     @Override

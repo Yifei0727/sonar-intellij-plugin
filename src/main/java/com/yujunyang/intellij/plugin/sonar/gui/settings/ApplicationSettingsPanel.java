@@ -21,29 +21,8 @@
 
 package com.yujunyang.intellij.plugin.sonar.gui.settings;
 
-import java.awt.BorderLayout;
-import java.awt.Dimension;
-import java.awt.FlowLayout;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-import javax.swing.Box;
-import javax.swing.BoxLayout;
-import javax.swing.JComponent;
-import javax.swing.JLabel;
-import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableModel;
-
 import com.intellij.icons.AllIcons;
-import com.intellij.openapi.actionSystem.ActionGroup;
-import com.intellij.openapi.actionSystem.ActionManager;
-import com.intellij.openapi.actionSystem.ActionToolbar;
-import com.intellij.openapi.actionSystem.AnAction;
-import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.DefaultActionGroup;
+import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.util.Pair;
 import com.intellij.ui.components.JBLabel;
@@ -59,14 +38,22 @@ import com.yujunyang.intellij.plugin.sonar.gui.dialog.AddSonarQubeConnectionDial
 import com.yujunyang.intellij.plugin.sonar.resources.ResourcesLoader;
 import org.jetbrains.annotations.NotNull;
 
-public class ApplicationSettingsPanel extends JBPanel {
+import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableModel;
+import java.awt.*;
+import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
+
+public class ApplicationSettingsPanel extends JBPanel<ApplicationSettingsPanel> {
     private JBTable connectionsTable;
     private DefaultTableModel connectionsTableModel;
-    private List<SonarQubeSettings> connections = new ArrayList<>();
+    private final List<SonarQubeSettings> connections = new ArrayList<>();
     private JBTable propertiesTable;
     private DefaultTableModel propertiesTableModel;
-    private Map<String, String> properties = new HashMap<>();
-    private ComboBox uiLanguagesComboBox;
+    private final Map<String, String> properties = new HashMap<>();
+    private ComboBox<String> uiLanguagesComboBox;
 
     public ApplicationSettingsPanel() {
         init();
@@ -99,12 +86,12 @@ public class ApplicationSettingsPanel extends JBPanel {
     }
 
     private void initUILanguages() {
-        JBPanel panel = new JBPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        JBPanel<ApplicationSettingsPanel> panel = new JBPanel<>(new FlowLayout(FlowLayout.LEFT, 0, 0));
         panel.setAlignmentX(LEFT_ALIGNMENT);
 
         panel.add(new JBLabel(ResourcesLoader.getString("settings.uiLanguages.label") + " "));
 
-        uiLanguagesComboBox = new ComboBox();
+        uiLanguagesComboBox = new ComboBox<>();
         panel.add(uiLanguagesComboBox);
         uiLanguagesComboBox.setEditable(false);
         UIUtils.getAllUILanguagesDesc().forEach(n -> {
@@ -120,7 +107,7 @@ public class ApplicationSettingsPanel extends JBPanel {
     private void initConnections() {
         addTableLabel(ResourcesLoader.getString("settings.sonarQubeConnections.tableTitle"));
 
-        connectionsTableModel = createDefaultTableModel(new String[] { "Name", "Url" });
+        connectionsTableModel = createDefaultTableModel(new String[]{"Name", "Url"});
 
 
         DefaultActionGroup actionGroup = new DefaultActionGroup();
@@ -167,11 +154,10 @@ public class ApplicationSettingsPanel extends JBPanel {
     }
 
 
-
     private void initSonarProperties() {
         addTableLabel(ResourcesLoader.getString("settings.sonarScannerProperties.tableTitle"));
 
-        propertiesTableModel = createDefaultTableModel(new String[] { "Name", "Value" });
+        propertiesTableModel = createDefaultTableModel(new String[]{"Name", "Value"});
 
         DefaultActionGroup actionGroup = new DefaultActionGroup();
         actionGroup.add(new AnAction(ResourcesLoader.getString("settings.action.add"), "", AllIcons.General.Add) {
@@ -187,6 +173,7 @@ public class ApplicationSettingsPanel extends JBPanel {
             public void update(@NotNull AnActionEvent e) {
                 e.getPresentation().setEnabled(propertiesTable.getSelectionModel().getAnchorSelectionIndex() > -1);
             }
+
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {
                 int selectionIndex = propertiesTable.getSelectionModel().getAnchorSelectionIndex();
@@ -201,6 +188,7 @@ public class ApplicationSettingsPanel extends JBPanel {
             public void update(@NotNull AnActionEvent e) {
                 e.getPresentation().setEnabled(propertiesTable.getSelectionModel().getAnchorSelectionIndex() > -1);
             }
+
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {
                 int selectionIndex = propertiesTable.getSelectionModel().getAnchorSelectionIndex();
@@ -261,7 +249,7 @@ public class ApplicationSettingsPanel extends JBPanel {
 
     private void addSonarQubeConnection(SonarQubeSettings sonarQubeSettings) {
         connections.add(sonarQubeSettings);
-        connectionsTableModel.addRow(new Object[] { sonarQubeSettings.name, sonarQubeSettings.url });
+        connectionsTableModel.addRow(new Object[]{sonarQubeSettings.name, sonarQubeSettings.url});
     }
 
     private void updateSonarQubeConnection(int selectionIndex, SonarQubeSettings sonarQubeSettings) {
@@ -275,7 +263,7 @@ public class ApplicationSettingsPanel extends JBPanel {
 
     private void addSonarScannerProperty(Pair<String, String> property) {
         properties.put(property.first, property.second);
-        propertiesTableModel.addRow(new Object[] { property.first, property.second });
+        propertiesTableModel.addRow(new Object[]{property.first, property.second});
     }
 
     private void updateSonarScannerProperty(int selectionIndex, Pair<String, String> property) {
@@ -302,7 +290,7 @@ public class ApplicationSettingsPanel extends JBPanel {
                 sqs.token = c.token;
             }
             connections.add(sqs);
-            connectionsTableModel.addRow(new Object[] { c.name, c.url });
+            connectionsTableModel.addRow(new Object[]{c.name, c.url});
         });
 
         properties.clear();
@@ -313,7 +301,7 @@ public class ApplicationSettingsPanel extends JBPanel {
         Map<String, String> existProperties = WorkspaceSettings.getInstance().sonarProperties;
         for (Map.Entry<String, String> item : existProperties.entrySet()) {
             properties.put(item.getKey(), item.getValue());
-            propertiesTableModel.addRow(new Object[] { item.getKey(), item.getValue() });
+            propertiesTableModel.addRow(new Object[]{item.getKey(), item.getValue()});
         }
     }
 }

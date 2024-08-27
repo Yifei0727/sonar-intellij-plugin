@@ -21,26 +21,11 @@
 
 package com.yujunyang.intellij.plugin.sonar.gui.popup;
 
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Cursor;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.util.function.Supplier;
-import javax.swing.BorderFactory;
-import javax.swing.Box;
-import javax.swing.BoxLayout;
-import javax.swing.Icon;
-import javax.swing.JComponent;
-import javax.swing.JTextArea;
-import javax.swing.JWindow;
-import javax.swing.SwingConstants;
-
 import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiFile;
-import com.intellij.ui.UI;
+import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.util.ui.JBUI;
@@ -50,9 +35,15 @@ import com.yujunyang.intellij.plugin.sonar.core.AbstractIssue;
 import com.yujunyang.intellij.plugin.sonar.core.DuplicatedBlocksIssue;
 import com.yujunyang.intellij.plugin.sonar.gui.common.UIUtils;
 
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.util.function.Supplier;
 
-public class IssueItemPanel extends JBPanel {
-    private AbstractIssue issue;
+
+public class IssueItemPanel extends JBPanel<IssueItemPanel> {
+    private final AbstractIssue issue;
 
     public IssueItemPanel(AbstractIssue issue) {
         this.issue = issue;
@@ -81,8 +72,8 @@ public class IssueItemPanel extends JBPanel {
         Pair<String, Icon> typeInfo = UIUtils.typeInfo(issue.getType());
         Pair<String, Icon> severityInfo = UIUtils.severityInfo(issue.getSeverity());
 
-        JBPanel infoPanel = UIUtils.createBoxLayoutPanel(BoxLayout.X_AXIS);
-        infoPanel.setBorder(JBUI.Borders.empty(5, 0, 0, 0));
+        JBPanel<IssueItemPanel> infoPanel = UIUtils.createBoxLayoutPanel(BoxLayout.X_AXIS);
+        infoPanel.setBorder(JBUI.Borders.emptyTop(5));
         add(infoPanel, issue instanceof DuplicatedBlocksIssue ? BorderLayout.SOUTH : BorderLayout.CENTER);
         JBLabel typeLabel = new JBLabel(typeInfo.first, typeInfo.second, SwingConstants.LEFT);
         infoPanel.add(typeLabel);
@@ -91,11 +82,11 @@ public class IssueItemPanel extends JBPanel {
         infoPanel.add(severityLabel);
 
         if (issue instanceof DuplicatedBlocksIssue) {
-            JBPanel duplicatesPanel = new JBPanel();
+            JBPanel<IssueItemPanel> duplicatesPanel = new JBPanel<>();
             BoxLayout boxLayout = new BoxLayout(duplicatesPanel, BoxLayout.Y_AXIS);
             duplicatesPanel.setLayout(boxLayout);
 
-            ((DuplicatedBlocksIssue)issue).getDuplicates().forEach(n -> {
+            ((DuplicatedBlocksIssue) issue).getDuplicates().forEach(n -> {
                 duplicatesPanel.add(Box.createVerticalStrut(5));
                 duplicatesPanel.add(createDuplicatePanel(n));
             });
@@ -104,22 +95,22 @@ public class IssueItemPanel extends JBPanel {
         }
     }
 
-    private JBPanel createDuplicatePanel(DuplicatedBlocksIssue.Duplicate duplicate) {
-        JBPanel panel = new JBPanel(new BorderLayout());
+    private JBPanel<IssueItemPanel> createDuplicatePanel(DuplicatedBlocksIssue.Duplicate duplicate) {
+        JBPanel<IssueItemPanel> panel = new JBPanel<>(new BorderLayout());
 
         JBLabel rowRangeLabel = new JBLabel(String.format("[%s-%s]", duplicate.getStartLine(), duplicate.getEndLine()));
-        rowRangeLabel.setBorder(JBUI.Borders.empty(0, 0, 0, 5));
+        rowRangeLabel.setBorder(JBUI.Borders.emptyRight(5));
         panel.add(rowRangeLabel, BorderLayout.WEST);
-        rowRangeLabel.setForeground(Color.BLUE);
+        rowRangeLabel.setForeground(JBColor.BLUE);
         rowRangeLabel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
-        JBPanel that = this;
+        JBPanel<IssueItemPanel> that = this;
         rowRangeLabel.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
                 PsiFile psiFile = StringUtil.isEmpty(duplicate.getPath()) ? issue.getPsiFile() : IdeaUtils.getPsiFile(issue.getPsiFile().getProject(), duplicate.getPath());
                 UIUtils.navigateToLine(psiFile, duplicate.getStartLine() - 1);
-                ((Supplier<JBPopup>)(that.getClientProperty("IssueItemPanel.getOwnerPopupFunction"))).get().cancel();
+                ((Supplier<JBPopup>) (that.getClientProperty("IssueItemPanel.getOwnerPopupFunction"))).get().cancel();
             }
         });
 

@@ -21,17 +21,6 @@
 
 package com.yujunyang.intellij.plugin.sonar.gui.toolwindow;
 
-import java.awt.BorderLayout;
-import java.awt.Cursor;
-import java.awt.Font;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.util.Arrays;
-import java.util.Set;
-import java.util.function.Supplier;
-import javax.swing.BorderFactory;
-import javax.swing.Box;
-
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBPanel;
@@ -45,6 +34,15 @@ import com.yujunyang.intellij.plugin.sonar.service.ProblemCacheService;
 
 public class IssuesDisplayControlPanel extends JBPanel {
     private Project project;
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.util.Arrays;
+import java.util.Set;
+
+public class IssuesDisplayControlPanel extends JBPanel<IssuesDisplayControlPanel> {
+    private final Project project;
     private JBLabel vulnerabilityCountLabel;
     private JBLabel bugCountLabel;
     private JBLabel codeSmellCountLabel;
@@ -118,12 +116,14 @@ public class IssuesDisplayControlPanel extends JBPanel {
                 resolvedCountLabel,
                 unresolvedCountLabel).forEach(label -> {
             label.setText("0");
-            cancelHighlight((JBPanel)(label.getParent()));
+            cancelHighlight((JBPanel) (label.getParent()));
         });
     }
 
     private MouseAdapter createMouseAdapter(JBPanel target, String filter) {
         MouseAdapter mouseAdapter = new MouseAdapter() {
+    private MouseAdapter createMouseAdapter(JBPanel<IssuesDisplayControlPanel> target, String filter) {
+        return new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
                 Set<String> filters = ProblemCacheService.getInstance(project).getFilters();
@@ -151,21 +151,20 @@ public class IssuesDisplayControlPanel extends JBPanel {
                 cancelHighlight(target);
             }
         };
-        return mouseAdapter;
     }
 
-    private void highlight(JBPanel target) {
+    private void highlight(JBPanel<IssuesDisplayControlPanel> target) {
         UIUtils.setBackgroundRecursively(target, UIUtils.highlightBackgroundColor());
         target.setBorder(BorderFactory.createCompoundBorder(JBUI.Borders.customLine(UIUtils.highlightBorderColor()), JBUI.Borders.empty(3, 5)));
     }
 
-    private void cancelHighlight(JBPanel target) {
+    private void cancelHighlight(JBPanel<IssuesDisplayControlPanel> target) {
         UIUtils.setBackgroundRecursively(target);
         target.setBorder(BorderFactory.createCompoundBorder(JBUI.Borders.customLine(UIUtils.borderColor()), JBUI.Borders.empty(3, 5)));
     }
 
     private void addControlItemPanel(String resourceKey, JBLabel countLabel, String filter) {
-        JBPanel panel = new JBPanel(new BorderLayout());
+        JBPanel<IssuesDisplayControlPanel> panel = new JBPanel<>(new BorderLayout());
         panel.setBorder(BorderFactory.createCompoundBorder(JBUI.Borders.customLine(UIUtils.borderColor()), JBUI.Borders.empty(3, 5)));
 
         panel.add(new JBLabel(ResourcesLoader.getString(resourceKey)), BorderLayout.CENTER);

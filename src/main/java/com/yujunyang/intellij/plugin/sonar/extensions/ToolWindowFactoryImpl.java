@@ -25,7 +25,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowFactory;
 import com.intellij.openapi.wm.ToolWindowManager;
-import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
 import com.yujunyang.intellij.plugin.sonar.common.PluginConstants;
@@ -38,10 +37,10 @@ import org.jetbrains.annotations.Nullable;
 public class ToolWindowFactoryImpl implements ToolWindowFactory {
     @Override
     public void createToolWindowContent(@NotNull Project project, @NotNull ToolWindow toolWindow) {
-        JBPanel reportPanel = new ReportPanel(project);
-        JBPanel logPanel = new LogPanel(project);
-        toolWindow.getContentManager().addContent(ContentFactory.SERVICE.getInstance().createContent(reportPanel, ResourcesLoader.getString("toolWindow.tab.report"), false));
-        toolWindow.getContentManager().addContent(ContentFactory.SERVICE.getInstance().createContent(logPanel, ResourcesLoader.getString("toolWindow.tab.log"), false));
+        ReportPanel reportPanel = new ReportPanel(project);
+        LogPanel logPanel = new LogPanel(project);
+        toolWindow.getContentManager().addContent(ContentFactory.getInstance().createContent(reportPanel, ResourcesLoader.getString("toolWindow.tab.report"), false));
+        toolWindow.getContentManager().addContent(ContentFactory.getInstance().createContent(logPanel, ResourcesLoader.getString("toolWindow.tab.log"), false));
     }
 
     @Nullable
@@ -58,6 +57,8 @@ public class ToolWindowFactoryImpl implements ToolWindowFactory {
     public static void showWindowContent(@NotNull final ToolWindow toolWindow, int contentIndex) {
         toolWindow.show(null);
         Content content = toolWindow.getContentManager().getContent(contentIndex);
-        toolWindow.getContentManager().setSelectedContent(content);
+        if (null != content) {
+            toolWindow.getContentManager().setSelectedContent(content);
+        }
     }
 }
