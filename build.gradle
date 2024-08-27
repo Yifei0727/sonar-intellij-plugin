@@ -1,14 +1,12 @@
 plugins {
     id 'java'
-    id 'org.jetbrains.intellij' version '0.4.21'
+    id 'org.jetbrains.intellij' version '1.13.3'
 }
 apply plugin: 'org.jetbrains.intellij'
 apply plugin: 'java'
 
 group 'com.yujunyang'
-version '0.2.2'
-
-sourceCompatibility = 1.8
+version '0.2.3'
 
 repositories {
     mavenCentral()
@@ -33,10 +31,9 @@ dependencies {
 
 // See https://github.com/JetBrains/gradle-intellij-plugin/
 intellij {
-     version '2019.3.1'
-//    version '2021.3.1'
+    version = '2022.2'
 
-    pluginName 'sonar-intellij-plugin'
+//    pluginName 'sonar-intellij-plugin'
 
     plugins = ['java', 'Git4Idea']
 
@@ -45,5 +42,6 @@ intellij {
 patchPluginXml {
 //    sinceBuild '191'
 //    untilBuild '213.*'
+    sinceBuild = '222.3345.118'
 
 }

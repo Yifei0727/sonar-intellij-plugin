@@ -3,7 +3,7 @@
     <name>SonarAnalyzer</name>
     <vendor email="hnyujunyang@163.com" url="https://github.com/lowkeyfish">Yu Junyang</vendor>
 
-    <idea-version since-build="191"/>
+    <idea-version since-build="222.3345.118"/>
 
     <description>
         Perform Sonar code analysis on Java projects, view code analysis reports, and prompt problem codes.
