@@ -9,9 +9,12 @@ group 'com.yujunyang'
 version '0.2.3'
 
 repositories {
-    mavenCentral()
+    maven { url "https://cache-redirector.jetbrains.com/intellij-dependencies" }
+    maven { url "https://cache-redirector.jetbrains.com/repo1.maven.org/maven2" }
     maven { url "https://www.jetbrains.com/intellij-repository/releases" }
+    maven { url "https://plugins.gradle.org/m2" }
     maven { url "https://jetbrains.bintray.com/intellij-third-party-dependencies" }
+    mavenCentral()
 }
 
 dependencies {
