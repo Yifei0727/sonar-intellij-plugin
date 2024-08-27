@@ -358,6 +358,28 @@ public final class UIUtils {
         }
     }
 
+    @NotNull
+    public static Icon getSeverityIcon(List<SeverityType> severities) {
+        int severity = severities.stream().max(Comparator.comparingInt(SeverityType::severity)).orElse(SeverityType.ANY).severity();
+
+        if (severity >= 10) {
+            return PluginIcons.BLOCKER;
+        }
+        if (severity >= 7) {
+            return PluginIcons.CRITICAL;
+        }
+        if (severity >= 5) {
+            return PluginIcons.MAJOR;
+        }
+        if (severity >= 3) {
+            return PluginIcons.MINOR;
+        }
+        if (severity >= 1) {
+            return PluginIcons.INFO;
+        }
+        return PluginIcons.ISSUE;
+    }
+
     public static JBTextArea createWrapLabelLikedTextArea(String text) {
         JBTextArea textArea = new JBTextArea(text);
         textArea.setFont(UIUtil.getLabelFont());

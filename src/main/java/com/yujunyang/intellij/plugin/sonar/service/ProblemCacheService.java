@@ -21,16 +21,6 @@
 
 package com.yujunyang.intellij.plugin.sonar.service;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.CopyOnWriteArraySet;
-
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiFile;
 import com.yujunyang.intellij.plugin.sonar.core.AbstractIssue;
@@ -39,22 +29,26 @@ import com.yujunyang.intellij.plugin.sonar.core.DuplicatedBlocksIssue;
 import com.yujunyang.intellij.plugin.sonar.core.Issue;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.CopyOnWriteArraySet;
+
 public class ProblemCacheService {
-    private Project project;
+    private final Project project;
+    private final Set<String> filters;
+    private final ConcurrentMap<PsiFile, List<AbstractIssue>> issues;
+    private final CopyOnWriteArraySet<String> profileLanguages;
+    private final CopyOnWriteArraySet<String> ignoreRules;
 
     private boolean initialized = false;
-    private ConcurrentMap<PsiFile, List<AbstractIssue>> issues;
-    private int bugCount;
-    private int codeSmellCount;
-    private int vulnerabilityCount;
-    private int duplicatedBlocksCount;
-    private int securityHotSpotCount;
 
-    private CopyOnWriteArraySet<String> profileLanguages;
-    private CopyOnWriteArraySet<String> ignoreRules;
-    private int ignoreIssueCount;
-
-    private Set<String> filters;
+    private long bugCount;
+    private long codeSmellCount;
+    private long vulnerabilityCount;
+    private long duplicatedBlocksCount;
+    private long securityHotSpotCount;
+    private long ignoreIssueCount;
 
     private AnalyzeScope analyzeScope;
 
@@ -79,10 +73,15 @@ public class ProblemCacheService {
     }
 
     public ConcurrentMap<PsiFile, List<AbstractIssue>> getFilteredIssues() {
-        if (filters.size() == 0) {
+        if (filters.isEmpty()) {
             return issues;
         }
 
+        boolean includeCritical = filters.contains("CRITICAL");
+        boolean includeBlocked = filters.contains("BLOCKER");
+        boolean includeMajor = filters.contains("MAJOR");
+        boolean includeMinor = filters.contains("MINOR");
+        boolean includeInfo = filters.contains("INFO");
         boolean includeBug = filters.contains("BUG");
         boolean includeCodeSmell = filters.contains("CODE_SMELL");
         boolean includeVulnerability = filters.contains("VULNERABILITY");
@@ -94,6 +93,7 @@ public class ProblemCacheService {
         boolean filterByScope = includeUpdatedFiles || includeNotUpdatedFiles;
         boolean includeResolved = filters.contains("RESOLVED");
         boolean includeUnresolved = filters.contains("UNRESOLVED");
+        boolean filterBySeverity = includeCritical || includeBlocked || includeMajor || includeMinor || includeInfo;
         boolean filterByStatus = includeResolved || includeUnresolved;
 
         List<PsiFile> changedFiles = GitService.getInstance(project).getChangedFiles();
@@ -143,6 +143,29 @@ public class ProblemCacheService {
                     }
                 }
 
+                if (filterBySeverity) {
+                    include = false;
+                    if (includeCritical && issue.getSeverity().equals("CRITICAL")) {
+                        include = true;
+                    }
+                    if (includeBlocked && issue.getSeverity().equals("BLOCKER")) {
+                        include = true;
+                    }
+                    if (includeMajor && issue.getSeverity().equals("MAJOR")) {
+                        include = true;
+                    }
+                    if (includeMinor && issue.getSeverity().equals("MINOR")) {
+                        include = true;
+                    }
+                    if (includeInfo && issue.getSeverity().equals("INFO")) {
+                        include = true;
+                    }
+
+                    if (!include) {
+                        continue;
+                    }
+                }
+
                 if (filterByStatus) {
                     include = false;
 
@@ -179,23 +202,23 @@ public class ProblemCacheService {
         }));
     }
 
-    public int getBugCount() {
+    public long getBugCount() {
         return bugCount;
     }
 
-    public int getCodeSmellCount() {
+    public long getCodeSmellCount() {
         return codeSmellCount;
     }
 
-    public int getVulnerabilityCount() {
+    public long getVulnerabilityCount() {
         return vulnerabilityCount;
     }
 
-    public int getDuplicatedBlocksCount() {
+    public long getDuplicatedBlocksCount() {
         return duplicatedBlocksCount;
     }
 
-    public int getSecurityHotSpotCount() {
+    public long getSecurityHotSpotCount() {
         return securityHotSpotCount;
     }
 
@@ -207,11 +230,11 @@ public class ProblemCacheService {
         return ignoreRules;
     }
 
-    public int getIgnoreIssueCount() {
+    public long getIgnoreIssueCount() {
         return ignoreIssueCount;
     }
 
-    public void setStats(int bugCount, int codeSmellCount, int vulnerabilityCount, int duplicatedBlocksCount, int securityHotSpotCount) {
+    public void setStats(long bugCount, long codeSmellCount, long vulnerabilityCount, long duplicatedBlocksCount, long securityHotSpotCount) {
         initialized = true;
         this.bugCount = bugCount;
         this.codeSmellCount = codeSmellCount;
@@ -248,9 +271,9 @@ public class ProblemCacheService {
         filters.clear();
     }
 
-    public int getUpdatedFilesIssueCount() {
+    public long getUpdatedFilesIssueCount() {
         List<PsiFile> changedFiles = GitService.getInstance(project).getChangedFiles();
-        int count = 0;
+        long count = 0;
         for (Map.Entry<PsiFile, List<AbstractIssue>> entry : issues.entrySet()) {
             PsiFile psiFile = entry.getKey();
             List<AbstractIssue> issueList = entry.getValue();
@@ -262,26 +285,26 @@ public class ProblemCacheService {
         return count;
     }
 
-    public int getNotUpdatedFilesIssueCount() {
+    public long getNotUpdatedFilesIssueCount() {
         return issueTotalCount() - getUpdatedFilesIssueCount();
     }
 
-    public int getFixedIssueCount() {
-        int count = 0;
+    public long getFixedIssueCount() {
+        long count = 0;
         for (Map.Entry<PsiFile, List<AbstractIssue>> entry : issues.entrySet()) {
             List<AbstractIssue> issueList = entry.getValue();
-            int normalIssueFixedCount = (int)issueList.stream().filter(n -> n instanceof Issue && n.isFixed()).count();
+            long normalIssueFixedCount = issueList.stream().filter(n -> n instanceof Issue && n.isFixed()).count();
             boolean duplicationIssueFixed = issueList.stream().filter(n -> n instanceof DuplicatedBlocksIssue && n.isFixed()).count() > 0;
             count += normalIssueFixedCount + (duplicationIssueFixed ? 1 : 0);
         }
         return count;
     }
 
-    public int getUnresolvedIssueCount() {
+    public long getUnresolvedIssueCount() {
         return issueTotalCount() - getFixedIssueCount();
     }
 
-    public int issueTotalCount() {
+    public long issueTotalCount() {
         return bugCount + codeSmellCount + vulnerabilityCount + securityHotSpotCount;
     }
 
@@ -290,6 +313,26 @@ public class ProblemCacheService {
     }
 
     public static ProblemCacheService getInstance(@NotNull Project project) {
-        return ServiceManager.getService(project, ProblemCacheService.class);
+        return project.getService(ProblemCacheService.class);
+    }
+
+    public long getBlockerCount() {
+        return issues.values().stream().flatMap(Collection::stream).filter(n -> n.getSeverity().equals("BLOCKER")).count();
+    }
+
+    public long getCriticalCount() {
+        return issues.values().stream().flatMap(Collection::stream).filter(n -> n.getSeverity().equals("CRITICAL")).count();
+    }
+
+    public long getMajorCount() {
+        return issues.values().stream().flatMap(Collection::stream).filter(n -> n.getSeverity().equals("MAJOR")).count();
+    }
+
+    public long getMinorCount() {
+        return issues.values().stream().flatMap(Collection::stream).filter(n -> n.getSeverity().equals("MINOR")).count();
+    }
+
+    public long getInfoCount() {
+        return issues.values().stream().flatMap(Collection::stream).filter(n -> n.getSeverity().equals("INFO")).count();
     }
 }

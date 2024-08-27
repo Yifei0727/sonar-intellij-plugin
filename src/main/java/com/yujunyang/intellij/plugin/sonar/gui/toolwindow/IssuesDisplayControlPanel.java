@@ -32,8 +32,6 @@ import com.yujunyang.intellij.plugin.sonar.messages.MessageBusManager;
 import com.yujunyang.intellij.plugin.sonar.resources.ResourcesLoader;
 import com.yujunyang.intellij.plugin.sonar.service.ProblemCacheService;
 
-public class IssuesDisplayControlPanel extends JBPanel {
-    private Project project;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
@@ -52,6 +50,11 @@ public class IssuesDisplayControlPanel extends JBPanel<IssuesDisplayControlPanel
     private JBLabel unresolvedCountLabel;
     private JBLabel updatedFilesCountLabel;
     private JBLabel notUpdatedFilesCountLabel;
+    private JBLabel blockerCountLabel;
+    private JBLabel criticalCountLabel;
+    private JBLabel majorCountLabel;
+    private JBLabel minorCountLabel;
+    private JBLabel infoCountLabel;
 
     public IssuesDisplayControlPanel(Project project) {
         this.project = project;
@@ -61,6 +64,18 @@ public class IssuesDisplayControlPanel extends JBPanel<IssuesDisplayControlPanel
 
     private void init() {
         setLayout(new SampleVerticalScrollLayout());
+
+        addTitleLabel(ResourcesLoader.getString("toolWindow.report.displayControl.severityTypeTitle"));
+        blockerCountLabel = createCountLabel("0");
+        addControlItemPanel("severityType.blocker", blockerCountLabel, "BLOCKER");
+        criticalCountLabel = createCountLabel("0");
+        addControlItemPanel("severityType.critical", criticalCountLabel, "CRITICAL");
+        majorCountLabel = createCountLabel("0");
+        addControlItemPanel("severityType.major", majorCountLabel, "MAJOR");
+        minorCountLabel = createCountLabel("0");
+        addControlItemPanel("severityType.minor", minorCountLabel, "MINOR");
+        infoCountLabel = createCountLabel("0");
+        addControlItemPanel("severityType.info", infoCountLabel, "INFO");
 
         addTitleLabel(ResourcesLoader.getString("toolWindow.report.displayControl.issueTypeTitle"));
         bugCountLabel = createCountLabel("0");
@@ -93,6 +108,12 @@ public class IssuesDisplayControlPanel extends JBPanel<IssuesDisplayControlPanel
 
     public void refresh() {
         ProblemCacheService problemCacheService = ProblemCacheService.getInstance(project);
+        blockerCountLabel.setText(String.valueOf(problemCacheService.getBlockerCount()));
+        criticalCountLabel.setText(String.valueOf(problemCacheService.getCriticalCount()));
+        majorCountLabel.setText(String.valueOf(problemCacheService.getMajorCount()));
+        minorCountLabel.setText(String.valueOf(problemCacheService.getMinorCount()));
+        infoCountLabel.setText(String.valueOf(problemCacheService.getInfoCount()));
+
         vulnerabilityCountLabel.setText(String.valueOf(problemCacheService.getVulnerabilityCount()));
         bugCountLabel.setText(String.valueOf(problemCacheService.getBugCount()));
         codeSmellCountLabel.setText(String.valueOf(problemCacheService.getCodeSmellCount()));
@@ -106,6 +127,11 @@ public class IssuesDisplayControlPanel extends JBPanel<IssuesDisplayControlPanel
 
     public void reset() {
         Arrays.asList(
+                blockerCountLabel,
+                criticalCountLabel,
+                majorCountLabel,
+                minorCountLabel,
+                infoCountLabel,
                 vulnerabilityCountLabel,
                 bugCountLabel,
                 codeSmellCountLabel,
@@ -120,8 +146,6 @@ public class IssuesDisplayControlPanel extends JBPanel<IssuesDisplayControlPanel
         });
     }
 
-    private MouseAdapter createMouseAdapter(JBPanel target, String filter) {
-        MouseAdapter mouseAdapter = new MouseAdapter() {
     private MouseAdapter createMouseAdapter(JBPanel<IssuesDisplayControlPanel> target, String filter) {
         return new MouseAdapter() {
             @Override

@@ -21,11 +21,6 @@
 
 package com.yujunyang.intellij.plugin.sonar.extensions;
 
-import java.awt.event.MouseEvent;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
 import com.intellij.codeInsight.daemon.GutterIconNavigationHandler;
 import com.intellij.codeInsight.daemon.LineMarkerInfo;
 import com.intellij.codeInsight.daemon.LineMarkerProvider;
@@ -39,13 +34,22 @@ import com.intellij.psi.impl.source.tree.LeafElement;
 import com.intellij.psi.impl.source.tree.TreeUtil;
 import com.intellij.ui.awt.RelativePoint;
 import com.intellij.util.Function;
+import com.yujunyang.intellij.plugin.sonar.config.ProjectSettings;
 import com.yujunyang.intellij.plugin.sonar.core.AbstractIssue;
 import com.yujunyang.intellij.plugin.sonar.core.AnalyzeState;
 import com.yujunyang.intellij.plugin.sonar.core.DuplicatedBlocksIssue;
+import com.yujunyang.intellij.plugin.sonar.core.SeverityType;
+import com.yujunyang.intellij.plugin.sonar.gui.common.UIUtils;
 import com.yujunyang.intellij.plugin.sonar.gui.popup.LineMarkerProviderPopupPanel;
+import com.yujunyang.intellij.plugin.sonar.resources.ResourcesLoader;
 import com.yujunyang.intellij.plugin.sonar.service.ProblemCacheService;
-import icons.PluginIcons;
 import org.jetbrains.annotations.NotNull;
+
+import java.awt.event.MouseEvent;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 public class SonarIssueLineMarkerProvider implements LineMarkerProvider {
 
@@ -67,8 +71,6 @@ public class SonarIssueLineMarkerProvider implements LineMarkerProvider {
             return null;
         }
 
-
-
         final List<AbstractIssue> currentFileIssues = issues.get(psiFile);
         final List<AbstractIssue> matchedIssues = new ArrayList<>();
         for (AbstractIssue item : currentFileIssues) {
@@ -81,9 +83,22 @@ public class SonarIssueLineMarkerProvider implements LineMarkerProvider {
             return null;
         }
 
+        final SeverityType severityType = Optional.ofNullable(ProjectSettings.getInstance(project).getSeverityType()).orElse(SeverityType.ANY);
+        List<SeverityType> severityTypes = matchedIssues.stream()
+                                                        .map(e -> SeverityType.fromName(e.getSeverity()))
+                                                        .filter(s -> s.severity() >= severityType.severity())
+                                                        .toList();
         final GutterIconNavigationHandler<PsiElement> navigationHandler = new IssueGutterIconNavigationHandler(matchedIssues, element);
-        return new LineMarkerInfo<>(element, element.getTextRange(), PluginIcons.ISSUE, null, navigationHandler, GutterIconRenderer.Alignment.CENTER);
-
+        final TooltipProvider tooltipProvider = new TooltipProvider(matchedIssues);
+        if (!severityTypes.isEmpty()) {
+            return new LineMarkerInfo<>(element, element.getTextRange(),
+                                        UIUtils.getSeverityIcon(severityTypes),
+                                        tooltipProvider,
+                                        navigationHandler,
+                                        GutterIconRenderer.Alignment.CENTER,
+                                        () -> tooltipProvider.fun(element));
+        }
+        return null;
     }
 
     private static PsiElement firstLeafOrNull(@NotNull PsiElement element) {
@@ -91,17 +106,8 @@ public class SonarIssueLineMarkerProvider implements LineMarkerProvider {
         return firstLeaf != null ? firstLeaf.getPsi() : null;
     }
 
-    private static class IssueGutterIconNavigationHandler implements GutterIconNavigationHandler<PsiElement> {
-
-        private final List<AbstractIssue> issues;
-        private final PsiElement psiElement;
-
-        private IssueGutterIconNavigationHandler(
-                List<AbstractIssue> issues,
-                PsiElement psiElement) {
-            this.issues = issues;
-            this.psiElement = psiElement;
-        }
+    private record IssueGutterIconNavigationHandler(List<AbstractIssue> issues,
+                                                    PsiElement psiElement) implements GutterIconNavigationHandler<PsiElement> {
 
 
         @Override
@@ -114,32 +120,24 @@ public class SonarIssueLineMarkerProvider implements LineMarkerProvider {
         }
     }
 
-    private static class TooltipProvider implements Function<PsiElement, String> {
-
-        private List<AbstractIssue> issues;
-
-        public TooltipProvider(List<AbstractIssue> issues) {
-            this.issues = issues;
-        }
+    private record TooltipProvider(List<AbstractIssue> issues) implements Function<PsiElement, String> {
 
         @Override
         public String fun(final PsiElement psiElement) {
             return getTooltipText();
         }
 
-
         private String getTooltipText() {
             final StringBuilder buffer = new StringBuilder();
             buffer.append("<!DOCTYPE html><html lang=\"en\"><head><style>h3{margin:0;}</style></head><body>");
             buffer.append("<h3>");
-            buffer.append("存在" + issues.size() + "个问题");
+            buffer.append(ResourcesLoader.getString("report.fileSummary", ResourcesLoader.getString("analysis.report.tips.prefix"), issues.size()));
             buffer.append("</h3>");
             for (AbstractIssue issue : issues) {
                 buffer.append("<p>");
                 buffer.append(issue.getName());
                 buffer.append("</p>");
-                if (issue instanceof DuplicatedBlocksIssue) {
-                    DuplicatedBlocksIssue duplicatedBlocksIssue = (DuplicatedBlocksIssue)issue;
+                if (issue instanceof DuplicatedBlocksIssue duplicatedBlocksIssue) {
                     for (DuplicatedBlocksIssue.Duplicate duplicate : duplicatedBlocksIssue.getDuplicates()) {
                         buffer.append("<p>");
                         buffer.append("<span>");
