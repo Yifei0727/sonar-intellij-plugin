@@ -21,18 +21,6 @@
 
 package com.yujunyang.intellij.plugin.sonar.common;
 
-import java.awt.EventQueue;
-import java.io.File;
-import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-
 import com.intellij.history.core.Paths;
 import com.intellij.ide.plugins.IdeaPluginDescriptor;
 import com.intellij.ide.plugins.PluginManager;
@@ -55,11 +43,7 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.openapi.roots.CompilerModuleExtension;
-import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.openapi.roots.OrderEnumerator;
-import com.intellij.openapi.roots.ProjectFileIndex;
-import com.intellij.openapi.roots.ProjectRootManager;
+import com.intellij.openapi.roots.*;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vcs.changes.ChangeListManager;
@@ -67,28 +51,21 @@ import com.intellij.openapi.vcs.changes.ChangeListManagerEx;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.encoding.EncodingProjectManager;
-import com.intellij.psi.JavaPsiFacade;
-import com.intellij.psi.JavaRecursiveElementVisitor;
-import com.intellij.psi.PsiAnnotation;
-import com.intellij.psi.PsiAnonymousClass;
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiClassOwner;
-import com.intellij.psi.PsiComment;
-import com.intellij.psi.PsiCompiledElement;
-import com.intellij.psi.PsiDirectory;
-import com.intellij.psi.PsiDocumentManager;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiLambdaExpression;
-import com.intellij.psi.PsiManager;
-import com.intellij.psi.PsiMethod;
-import com.intellij.psi.PsiModifierList;
-import com.intellij.psi.PsiNameIdentifierOwner;
+import com.intellij.psi.*;
 import com.intellij.psi.impl.file.PsiDirectoryFactory;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.awt.*;
+import java.io.File;
+import java.text.MessageFormat;
+import java.util.List;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 public final class IdeaUtils {
     private static final Pattern JAVA_VERSION_PATTERN = Pattern.compile("java\\s+version\\s+\"(.+?)\"");
@@ -116,12 +93,12 @@ public final class IdeaUtils {
             return null;
         }
 
-        final VirtualFile baseDir = project.getBaseDir();
+        final String baseDir = project.getBasePath();
         if (baseDir == null) {
             return null;
         }
 
-        return new File(baseDir.getPath());
+        return new File(baseDir);
     }
 
 
@@ -478,7 +455,7 @@ public final class IdeaUtils {
         if (EventQueue.isDispatchThread()) {
             fullClassPath = OrderEnumerator.orderEntries(project).recursively().getPathsList().getPathsString();
         } else {
-            fullClassPath = ApplicationManager.getApplication().runReadAction((Computable<String>)() ->
+            fullClassPath = ApplicationManager.getApplication().runReadAction((Computable<String>) () ->
                     OrderEnumerator.orderEntries(project).recursively().getPathsList().getPathsString()
             );
         }
@@ -661,7 +638,11 @@ public final class IdeaUtils {
 
     public static boolean isInProject(Project project, VirtualFile virtualFile) {
         PsiManager psiManager = PsiManager.getInstance(project);
-        return psiManager.isInProject(psiManager.findFile(virtualFile));
+        PsiFile psiFile = psiManager.findFile(virtualFile);
+        if (psiFile == null) {
+            return false;
+        }
+        return psiManager.isInProject(psiFile);
     }
 
 }
