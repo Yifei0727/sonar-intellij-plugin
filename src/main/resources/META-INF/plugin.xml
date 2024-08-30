@@ -9,7 +9,8 @@
         Perform Sonar code analysis on Java projects, view code analysis reports, and prompt problem codes.
         All you have to do is to bind SonarQube, and you can use all functions without leaving the IDE.
 
-        Support code analysis by scope, such as project files, module files, package files, changelist files, open files, and selected files.
+        Support code analysis by scope, such as project files, module files, package files, changelist files, open
+        files, and selected files.
         The report shows support for filtering and marking resolved issues.
     </description>
 
@@ -86,12 +87,14 @@
                                         implementationClass="com.yujunyang.intellij.plugin.sonar.extensions.SonarIssueLineMarkerProvider"/>
         <codeInsight.lineMarkerProvider language="XML"
                                         implementationClass="com.yujunyang.intellij.plugin.sonar.extensions.SonarIssueLineMarkerProvider"/>
-        <applicationConfigurable parentId="tools" id="com.yujunyang.intellij.plugin.sonar.extensions.ApplicationSettingsConfigurable"
-                instance="com.yujunyang.intellij.plugin.sonar.extensions.ApplicationSettingsConfigurable"/>
+        <applicationConfigurable parentId="tools"
+                                 id="com.yujunyang.intellij.plugin.sonar.extensions.ApplicationSettingsConfigurable"
+                                 instance="com.yujunyang.intellij.plugin.sonar.extensions.ApplicationSettingsConfigurable"
+                                 displayName="SonarAnalyzer"/>
         <projectConfigurable parentId="com.yujunyang.intellij.plugin.sonar.extensions.ApplicationSettingsConfigurable"
-                instance="com.yujunyang.intellij.plugin.sonar.extensions.ProjectSettingsConfigurable"
+                             instance="com.yujunyang.intellij.plugin.sonar.extensions.ProjectSettingsConfigurable"
                              nonDefaultProject="true"
-        />
+                             displayName="Project Settings"/>
     </extensions>
 
     <actions>
@@ -100,16 +103,17 @@
             <add-to-group anchor="after" group-id="EditorPopupMenu" relative-to-action="AnalyzeMenu"/>
             <add-to-group anchor="after" group-id="ProjectViewPopupMenu" relative-to-action="AnalyzeMenu"/>
             <action class="com.yujunyang.intellij.plugin.sonar.actions.AnalyzeSelectedFiles"
-                    id="SonarAnalyzer.AnalyzeSelectedFiles"></action>
+                    id="SonarAnalyzer.AnalyzeSelectedFiles"/>
 
             <action class="com.yujunyang.intellij.plugin.sonar.actions.AnalyzeOpenFiles"
-                    id="SonarAnalyzer.AnalyzeOpenFiles" icon="PluginIcons.ANALYZE_OPEN_FILES_ICON"></action>
+                    id="SonarAnalyzer.AnalyzeOpenFiles" icon="PluginIcons.ANALYZE_OPEN_FILES_ICON"/>
             <action class="com.yujunyang.intellij.plugin.sonar.actions.AnalyzeChangelistFiles"
-                    id="SonarAnalyzer.AnalyzeChangelistFiles" icon="PluginIcons.ANALYZE_CHANGELIST_FILES_ICON"></action>
+                    id="SonarAnalyzer.AnalyzeChangelistFiles" icon="PluginIcons.ANALYZE_CHANGELIST_FILES_ICON"/>
             <action class="com.yujunyang.intellij.plugin.sonar.actions.AnalyzePackageFiles"
-                    id="SonarAnalyzer.AnalyzePackageFiles" icon="PluginIcons.ANALYZE_PACKAGE_FILES_ICON"></action>
+                    id="SonarAnalyzer.AnalyzePackageFiles" icon="PluginIcons.ANALYZE_PACKAGE_FILES_ICON"/>
             <action class="com.yujunyang.intellij.plugin.sonar.actions.AnalyzeModuleFilesNotIncludingTests"
-                    id="SonarAnalyzer.AnalyzeModuleFilesNotIncludingTests" icon="PluginIcons.ANALYZE_MODULE_FILES_NOT_INCLUDING_TESTS_ICON"></action>
+                    id="SonarAnalyzer.AnalyzeModuleFilesNotIncludingTests"
+                    icon="PluginIcons.ANALYZE_MODULE_FILES_NOT_INCLUDING_TESTS_ICON"/>
             <action id="SonarAnalyzer.ProjectFilesNotIncludingTestsAction"
                     class="com.yujunyang.intellij.plugin.sonar.actions.AnalyzeProjectFilesNotIncludingTests"
                     icon="PluginIcons.ANALYZE_PROJECT_FILES_NOT_INCLUDING_TESTS_ICON">
