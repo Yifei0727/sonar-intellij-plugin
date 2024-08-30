@@ -46,7 +46,7 @@ public class ProjectSettings implements PersistentStateComponent<ProjectSettings
     public boolean inheritedFromApplication = true;
 
     @Tag
-    public SeverityType severityType;
+    public SeverityType severityType = SeverityType.ANY;
 
     @Tag("sonarProperties")
     @MapAnnotation(
@@ -81,8 +81,12 @@ public class ProjectSettings implements PersistentStateComponent<ProjectSettings
         return project.getService(ProjectSettings.class);
     }
 
-    @Nullable
+    @NotNull
     public SeverityType getSeverityType() {
         return severityType;
+    }
+
+    public boolean isEnabledSeverity(String severityType) {
+        return SeverityType.fromName(severityType).severity() >= this.severityType.severity();
     }
 }

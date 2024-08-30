@@ -21,7 +21,6 @@
 
 package com.yujunyang.intellij.plugin.sonar.common;
 
-import com.intellij.history.core.Paths;
 import com.intellij.ide.plugins.IdeaPluginDescriptor;
 import com.intellij.ide.plugins.PluginManager;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
@@ -47,7 +46,6 @@ import com.intellij.openapi.roots.*;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vcs.changes.ChangeListManager;
-import com.intellij.openapi.vcs.changes.ChangeListManagerEx;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.encoding.EncodingProjectManager;
@@ -60,6 +58,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.io.File;
+import java.nio.file.Path;
 import java.text.MessageFormat;
 import java.util.List;
 import java.util.*;
@@ -153,6 +152,9 @@ public final class IdeaUtils {
     @NotNull
     private static VirtualFile[] getSelectedFiles(@NotNull final DataContext dataContext) {
         final Project project = getProject(dataContext);
+        if (null == project) {
+            return new VirtualFile[0];
+        }
         return FileEditorManager.getInstance(project).getSelectedFiles();
     }
 
@@ -442,7 +444,7 @@ public final class IdeaUtils {
 
     public static String getPluginVersion() {
         for (IdeaPluginDescriptor plugin : PluginManager.getPlugins()) {
-            if (PluginId.getId(PluginConstants.PLUGIN_ID) == plugin.getPluginId()) {
+            if (PluginId.getId(PluginConstants.PLUGIN_ID).equals(plugin.getPluginId())) {
                 return plugin.getVersion();
             }
         }
@@ -460,7 +462,7 @@ public final class IdeaUtils {
             );
         }
         String splitChar;
-        if (fullClassPath.indexOf(";") > -1) {
+        if (fullClassPath.contains(";")) {
             splitChar = ";";
         } else {
             splitChar = ":";
@@ -479,6 +481,9 @@ public final class IdeaUtils {
         Module[] modules = ModuleManager.getInstance(project).getModules();
         for (Module module : modules) {
             CompilerModuleExtension compilerModuleExtension = CompilerModuleExtension.getInstance(module);
+            if (compilerModuleExtension == null) {
+                continue;
+            }
             VirtualFile compilerOutPath = compilerModuleExtension.getCompilerOutputPath();
             if (compilerOutPath != null) {
                 ret.add(compilerOutPath.getCanonicalPath());
@@ -490,6 +495,9 @@ public final class IdeaUtils {
     public static String getAllCompilerOutputPath(Module module) {
         List<String> ret = new ArrayList<>();
         CompilerModuleExtension compilerModuleExtension = CompilerModuleExtension.getInstance(module);
+        if (compilerModuleExtension == null) {
+            return "";
+        }
         VirtualFile compilerOutPath = compilerModuleExtension.getCompilerOutputPath();
         if (compilerOutPath != null) {
             ret.add(compilerOutPath.getCanonicalPath());
@@ -513,7 +521,13 @@ public final class IdeaUtils {
     public static String getCompilerOutputPath(Project project, VirtualFile virtualFile) {
         final ProjectFileIndex projectFileIndex = ProjectRootManager.getInstance(project).getFileIndex();
         final Module module = ModuleUtilCore.findModuleForFile(virtualFile, project);
+        if (module == null) {
+            return "";
+        }
         CompilerModuleExtension compilerModuleExtension = CompilerModuleExtension.getInstance(module);
+        if (compilerModuleExtension == null) {
+            return "";
+        }
         VirtualFile compilerOutputPath;
         if (projectFileIndex.isInTestSourceContent(virtualFile)) {
             compilerOutputPath = compilerModuleExtension.getCompilerOutputPathForTests();
@@ -531,6 +545,9 @@ public final class IdeaUtils {
         }
 
         final PsiDirectory psiDirectory = PsiManager.getInstance(project).findDirectory(packageVirtualFile);
+        if (psiDirectory == null) {
+            return "";
+        }
         String packageName = PsiDirectoryFactory.getInstance(project).getQualifiedName(psiDirectory, false);
         return MessageFormat.format("{0}/{1}", compilerOutputPath.getCanonicalPath(), packageName.replace(".", "/"));
     }
@@ -579,12 +596,29 @@ public final class IdeaUtils {
     public static String getPath(PsiFile psiFile) {
         String projectPath = psiFile.getProject().getBasePath();
         String psiFilePath = psiFile.getVirtualFile().getPath();
-        return Paths.relativeIfUnder(psiFilePath, projectPath);
+        return relativeIfUnder(psiFilePath, projectPath == null ? "" : projectPath);
     }
+
+    @Nullable
+    public static String relativeIfUnder(@NotNull String path, @NotNull String base) {
+        Path basePath = java.nio.file.Paths.get(base).toAbsolutePath().normalize();
+        Path pathPath = java.nio.file.Paths.get(path).toAbsolutePath().normalize();
+        if (pathPath.startsWith(basePath)) {
+            return basePath.relativize(pathPath).toString();
+        }
+        return null;
+    }
+
 
     public static String getProjectSdkVersion(Project project) {
         Sdk sdk = ProjectRootManager.getInstance(project).getProjectSdk();
+        if (sdk == null) {
+            return "8";
+        }
         String javaVersion = sdk.getVersionString();
+        if (javaVersion == null) {
+            return "8";
+        }
 
         Matcher matcher = JAVA_VERSION_PATTERN.matcher(javaVersion);
         if (matcher.find()) {
@@ -621,7 +655,7 @@ public final class IdeaUtils {
     }
 
     public static List<VirtualFile> getValidChangelistFiles(Project project) {
-        ChangeListManagerEx changeListManager = (ChangeListManagerEx) ChangeListManager.getInstance(project);
+        ChangeListManager changeListManager = (ChangeListManager) ChangeListManager.getInstance(project);
         return changeListManager.getAffectedPaths().stream().
                 map(n -> LocalFileSystem.getInstance().findFileByIoFile(n)).
                 filter(n -> n != null && isValidFileType(n.getFileType())).

@@ -21,27 +21,16 @@
 
 package com.yujunyang.intellij.plugin.sonar.actions;
 
-import javax.swing.event.HyperlinkEvent;
-
 import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer;
-import com.intellij.notification.Notification;
-import com.intellij.notification.NotificationGroup;
-import com.intellij.notification.NotificationListener;
-import com.intellij.notification.NotificationType;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.application.ex.ApplicationManagerEx;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.wm.ToolWindow;
 import com.yujunyang.intellij.plugin.sonar.common.EventDispatchThreadHelper;
-import com.yujunyang.intellij.plugin.sonar.common.IdeaUtils;
 import com.yujunyang.intellij.plugin.sonar.core.AnalyzeState;
 import com.yujunyang.intellij.plugin.sonar.core.Report;
 import com.yujunyang.intellij.plugin.sonar.core.ReportUtils;
 import com.yujunyang.intellij.plugin.sonar.messages.MessageBusManager;
-import com.yujunyang.intellij.plugin.sonar.resources.ResourcesLoader;
-import com.yujunyang.intellij.plugin.sonar.service.GitService;
 import com.yujunyang.intellij.plugin.sonar.service.ProblemCacheService;
 import org.jetbrains.annotations.NotNull;
 
@@ -122,5 +111,10 @@ public class TestAction extends AbstractAction {
 //        GitService.getInstance(project).getChangedFiles().forEach(n -> {
 //            System.out.println(n.getVirtualFile().getCanonicalPath());
 //        });
+    }
+
+    @Override
+    public @NotNull ActionUpdateThread getActionUpdateThread() {
+        return ActionUpdateThread.BGT;
     }
 }

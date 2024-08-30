@@ -21,13 +21,6 @@
 
 package com.yujunyang.intellij.plugin.sonar.api;
 
-import java.io.IOException;
-import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
 import com.intellij.openapi.project.Project;
 import com.yujunyang.intellij.plugin.sonar.common.SettingsUtils;
 import com.yujunyang.intellij.plugin.sonar.common.exceptions.ApiRequestFailedException;
@@ -38,6 +31,14 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import retrofit2.Response;
 import retrofit2.Retrofit;
+
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 public class SonarApiImpl {
 //    private static SonarApi sonarApi;
@@ -56,7 +57,7 @@ public class SonarApiImpl {
         OkHttpClient.Builder httpClient = new OkHttpClient.Builder();
         SonarQubeSettings connection = SettingsUtils.getSonarQubeConnection(project);
         httpClient.addInterceptor(chain -> {
-            String credentials = Credentials.basic(connection != null ? connection.token : "", "", Charset.forName("utf8"));
+            String credentials = Credentials.basic(connection != null ? connection.token : "", "", StandardCharsets.UTF_8);
             Request request = chain.request();
             Request authenticatedRequest = request.newBuilder()
                     .header("Authorization", credentials).build();
@@ -76,7 +77,7 @@ public class SonarApiImpl {
             }
             return profiles.stream()
                     .filter(n -> n.getActiveRuleCount() > 0 && languages.contains(n.getLanguage()))
-                    .collect(Collectors.toMap(n -> n.getLanguage(), n -> n.getKey()));
+                    .collect(Collectors.toMap(QualityProfilesSearchResponse.Profile::getLanguage, QualityProfilesSearchResponse.Profile::getKey));
         } catch (IOException e) {
             throw new ApiRequestFailedException("The default profiles search failed:" + e.getMessage(), e);
         }
@@ -117,7 +118,7 @@ public class SonarApiImpl {
         try {
             OkHttpClient.Builder httpClient = new OkHttpClient.Builder();
             httpClient.addInterceptor(chain -> {
-                String credentials = Credentials.basic(token, "", Charset.forName("utf8"));
+                String credentials = Credentials.basic(token, "", StandardCharsets.UTF_8);
                 Request request = chain.request();
                 Request authenticatedRequest = request.newBuilder()
                         .header("Authorization", credentials).build();

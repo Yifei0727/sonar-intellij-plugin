@@ -22,13 +22,12 @@
 package com.yujunyang.intellij.plugin.sonar.service;
 
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.impl.EditorFactoryImpl;
 import com.intellij.openapi.project.Project;
 
 public class ProjectCloseListener implements Disposable {
-    private Project project;
+    private final Project project;
     private Editor editor;
 
     public ProjectCloseListener(Project project) {
@@ -47,7 +46,7 @@ public class ProjectCloseListener implements Disposable {
     }
 
     public static ProjectCloseListener getInstance(Project project) {
-        return ServiceManager.getService(project, ProjectCloseListener.class);
+        return project.getService(ProjectCloseListener.class);
     }
 
 

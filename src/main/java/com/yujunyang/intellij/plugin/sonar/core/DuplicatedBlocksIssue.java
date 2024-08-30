@@ -28,7 +28,7 @@ import com.intellij.psi.PsiFile;
 import com.yujunyang.intellij.plugin.sonar.resources.ResourcesLoader;
 
 public class DuplicatedBlocksIssue extends AbstractIssue {
-    private List<Duplicate> duplicates;
+    private final List<Duplicate> duplicates;
 
     public DuplicatedBlocksIssue(
             PsiFile psiFile,
@@ -70,27 +70,6 @@ public class DuplicatedBlocksIssue extends AbstractIssue {
         return ResourcesLoader.getString("lineMarker.duplicationSummary", lineStart, lineEnd, duplicates.size());
     }
 
-    public static class Duplicate {
-        private String path;
-        private int startLine;
-        private int endLine;
-
-        public Duplicate(String path, int startLine, int endLine) {
-            this.path = path;
-            this.startLine = startLine;
-            this.endLine = endLine;
-        }
-
-        public String getPath() {
-            return path;
-        }
-
-        public int getStartLine() {
-            return startLine;
-        }
-
-        public int getEndLine() {
-            return endLine;
-        }
+    public record Duplicate(String path, int startLine, int endLine) {
     }
 }

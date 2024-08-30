@@ -21,8 +21,6 @@
 
 package com.yujunyang.intellij.plugin.sonar.actions;
 
-import java.util.List;
-
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.application.ApplicationManager;
@@ -39,6 +37,8 @@ import com.yujunyang.intellij.plugin.sonar.core.AnalyzeState;
 import com.yujunyang.intellij.plugin.sonar.core.SonarScannerStarter;
 import com.yujunyang.intellij.plugin.sonar.resources.ResourcesLoader;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
 
 public class AnalyzeSelectedFiles extends AbstractAnalyzeAction {
     @Override

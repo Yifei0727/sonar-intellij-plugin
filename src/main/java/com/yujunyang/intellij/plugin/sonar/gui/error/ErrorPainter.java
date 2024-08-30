@@ -21,23 +21,19 @@
 
 package com.yujunyang.intellij.plugin.sonar.gui.error;
 
-import java.awt.Component;
-import java.awt.Graphics2D;
-import java.awt.Point;
-import java.util.HashSet;
-import java.util.Set;
-import javax.swing.JComponent;
-import javax.swing.JPanel;
-import javax.swing.SwingUtilities;
-
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.ui.AbstractPainter;
 import com.intellij.openapi.wm.IdeGlassPaneUtil;
 import com.intellij.util.ui.UIUtil;
 
+import javax.swing.*;
+import java.awt.*;
+import java.util.HashSet;
+import java.util.Set;
+
 public class ErrorPainter extends AbstractPainter {
-    private Set<JComponent> componentsWithErrors = new HashSet<>();
+    private final Set<JComponent> componentsWithErrors = new HashSet<>();
     private JPanel panel;
 
     @Override

@@ -39,7 +39,7 @@ public class LogOutputImpl implements LogOutput {
     private static final String PROFILE_LANGUAGE_REGEX = "Quality\\s*profile\\s*for\\s*(.+?):";
     private static final Pattern PROFILE_LANGUAGE_PATTERN = Pattern.compile(PROFILE_LANGUAGE_REGEX, CASE_INSENSITIVE);
 
-    private Project project;
+    private final Project project;
 
 
     public LogOutputImpl(Project project) {

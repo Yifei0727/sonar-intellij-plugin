@@ -21,18 +21,8 @@
 
 package com.yujunyang.intellij.plugin.sonar.extensions;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-import javax.swing.JComponent;
-import javax.swing.event.HyperlinkEvent;
-
-import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationGroup;
-import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
-import com.intellij.openapi.application.ex.ApplicationManagerEx;
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.ProjectManager;
@@ -41,8 +31,13 @@ import com.yujunyang.intellij.plugin.sonar.config.WorkspaceSettings;
 import com.yujunyang.intellij.plugin.sonar.gui.settings.ApplicationSettingsPanel;
 import com.yujunyang.intellij.plugin.sonar.resources.ResourcesLoader;
 import org.jetbrains.annotations.Nls;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import javax.swing.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class ApplicationSettingsConfigurable implements Configurable {
     NotificationGroup notificationGroup = NotificationGroup.balloonGroup("Sonar Intellij plugin Balloon Notification");
@@ -73,7 +68,7 @@ public class ApplicationSettingsConfigurable implements Configurable {
         }
 
         for (SonarQubeSettings n : existConnections) {
-            if (!connections.stream().anyMatch(m -> m.name.equals(n.name) && m.url.equals(n.url) && m.token.equals(n.token))) {
+            if (connections.stream().noneMatch(m -> m.name.equals(n.name) && m.url.equals(n.url) && m.token.equals(n.token))) {
                 return true;
             }
         }
@@ -101,22 +96,17 @@ public class ApplicationSettingsConfigurable implements Configurable {
         WorkspaceSettings workspaceSettings = WorkspaceSettings.getInstance();
         List<SonarQubeSettings> connections = applicationSettingsPanel.getConnections();
         Map<String, String> properties = applicationSettingsPanel.getProperties();
-        workspaceSettings.sonarQubeConnections = connections.stream().collect(Collectors.toSet());
+        workspaceSettings.sonarQubeConnections = new HashSet<>(connections);
         workspaceSettings.sonarProperties = properties;
 
         boolean languageSwitched = !workspaceSettings.uiLanguageLocale.equals(applicationSettingsPanel.getUILanguageLocale());
         workspaceSettings.uiLanguageLocale = applicationSettingsPanel.getUILanguageLocale();
         if (languageSwitched && ProjectManager.getInstance().getOpenProjects().length > 0) {
             notificationGroup.createNotification(
-                    "SonarAnalyzer",
-                    ResourcesLoader.getString("settings.uiLanguages.switchSuccess"),
-                    NotificationType.INFORMATION,
-                    new NotificationListener.Adapter() {
-                        @Override
-                        protected void hyperlinkActivated(@NotNull Notification notification, @NotNull HyperlinkEvent e) {
-                            ApplicationManagerEx.getApplicationEx().restart(false);
-                        }
-                    }).notify(ProjectManager.getInstance().getOpenProjects()[0]);
+                            "SonarAnalyzer",
+                            ResourcesLoader.getString("settings.uiLanguages.switchSuccess"),
+                            NotificationType.INFORMATION)
+                    .notify(ProjectManager.getInstance().getOpenProjects()[0]);
         }
     }
 

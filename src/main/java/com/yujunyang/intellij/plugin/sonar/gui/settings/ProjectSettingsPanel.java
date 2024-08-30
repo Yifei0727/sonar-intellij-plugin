@@ -21,46 +21,30 @@
 
 package com.yujunyang.intellij.plugin.sonar.gui.settings;
 
-import com.intellij.icons.AllIcons;
 import com.intellij.ide.DataManager;
-import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.openapi.options.ex.Settings;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
-import com.intellij.openapi.util.Pair;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBPanel;
-import com.intellij.ui.components.JBScrollPane;
-import com.intellij.ui.table.JBTable;
-import com.intellij.util.ui.JBUI;
 import com.yujunyang.intellij.plugin.sonar.config.ProjectSettings;
 import com.yujunyang.intellij.plugin.sonar.config.WorkspaceSettings;
 import com.yujunyang.intellij.plugin.sonar.core.SeverityType;
 import com.yujunyang.intellij.plugin.sonar.extensions.ApplicationSettingsConfigurable;
-import com.yujunyang.intellij.plugin.sonar.gui.common.UIUtils;
-import com.yujunyang.intellij.plugin.sonar.gui.dialog.AddSonarPropertyDialog;
 import com.yujunyang.intellij.plugin.sonar.resources.ResourcesLoader;
-import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableModel;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.HashMap;
 import java.util.Map;
-import java.util.stream.Collectors;
 
-public class ProjectSettingsPanel extends JBPanel<ProjectSettingsPanel> {
+public class ProjectSettingsPanel extends AbstractSettingsPanel<ProjectSettingsPanel> {
     private final Project project;
     private ComboBox<String> connectionNameComboBox;
     private JBCheckBox inheritedFromApplicationCheckBox;
-    private JBTable propertiesTable;
-    private DefaultTableModel propertiesTableModel;
-    private final Map<String, String> properties = new HashMap<>();
     private ComboBox<SeverityType> severityComboBox;
 
     public ProjectSettingsPanel(Project project) {
@@ -79,9 +63,6 @@ public class ProjectSettingsPanel extends JBPanel<ProjectSettingsPanel> {
         return inheritedFromApplicationCheckBox.isSelected();
     }
 
-    public Map<String, String> getProperties() {
-        return properties;
-    }
 
     private void init() {
         BoxLayout layout = new BoxLayout(this, BoxLayout.Y_AXIS);
@@ -94,6 +75,7 @@ public class ProjectSettingsPanel extends JBPanel<ProjectSettingsPanel> {
         inheritedFromApplicationCheckBox.setAlignmentX(LEFT_ALIGNMENT);
         add(inheritedFromApplicationCheckBox);
         // 新增 问题级别过滤配置
+        add(Box.createVerticalStrut(15));
         initSeverityComboBox();
 
         // 这个不用主动调用，settings窗口打开时就会调用重写的reset方法，内部就是下面的reset
@@ -146,127 +128,18 @@ public class ProjectSettingsPanel extends JBPanel<ProjectSettingsPanel> {
     }
 
 
-    private void initSonarProperties() {
-        addTableLabel(ResourcesLoader.getString("settings.sonarScannerProperties.tableTitle"));
-
-        propertiesTableModel = createDefaultTableModel(new String[]{"Name", "Value"});
-
-        DefaultActionGroup actionGroup = new DefaultActionGroup();
-        actionGroup.add(new AnAction(ResourcesLoader.getString("settings.action.add"), "", AllIcons.General.Add) {
-            @Override
-            public void actionPerformed(@NotNull AnActionEvent e) {
-                AddSonarPropertyDialog addSonarPropertyDialog = new AddSonarPropertyDialog((property) -> addSonarScannerProperty(property));
-                addSonarPropertyDialog.setExistNames(properties.keySet().stream().collect(Collectors.toList()));
-                addSonarPropertyDialog.show();
-            }
-        });
-        actionGroup.add(new AnAction(ResourcesLoader.getString("settings.action.remove"), "", AllIcons.General.Remove) {
-            @Override
-            public void update(@NotNull AnActionEvent e) {
-                e.getPresentation().setEnabled(propertiesTable.getSelectionModel().getAnchorSelectionIndex() > -1);
-            }
-
-            @Override
-            public void actionPerformed(@NotNull AnActionEvent e) {
-                int selectionIndex = propertiesTable.getSelectionModel().getAnchorSelectionIndex();
-                String name = propertiesTableModel.getValueAt(selectionIndex, 0).toString();
-                propertiesTableModel.removeRow(selectionIndex);
-                properties.remove(name);
-                propertiesTableModel.fireTableDataChanged();
-            }
-        });
-        actionGroup.add(new AnAction(ResourcesLoader.getString("settings.action.edit"), "", AllIcons.Actions.Edit) {
-            @Override
-            public void update(@NotNull AnActionEvent e) {
-                e.getPresentation().setEnabled(propertiesTable.getSelectionModel().getAnchorSelectionIndex() > -1);
-            }
-
-            @Override
-            public void actionPerformed(@NotNull AnActionEvent e) {
-                int selectionIndex = propertiesTable.getSelectionModel().getAnchorSelectionIndex();
-                String name = propertiesTableModel.getValueAt(selectionIndex, 0).toString();
-                String value = properties.get(name);
-                AddSonarPropertyDialog addSonarPropertyDialog = new AddSonarPropertyDialog((property) -> updateSonarScannerProperty(selectionIndex, property));
-                addSonarPropertyDialog.setExistNames(properties.keySet().stream().collect(Collectors.toList()));
-                addSonarPropertyDialog.initProperty(name, value);
-                addSonarPropertyDialog.show();
-            }
-        });
-
-        propertiesTable = createTable(ResourcesLoader.getString("settings.sonarScannerProperties.tableEmpty"), propertiesTableModel, actionGroup);
-    }
-
-    private JBTable createTable(String emptyText, TableModel tableModel, ActionGroup actionGroup) {
-        JBPanel<ProjectSettingsPanel> tablePanel = new JBPanel<>(new BorderLayout());
-        tablePanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 200));
-        tablePanel.setPreferredSize(new Dimension(Integer.MAX_VALUE, 200));
-        tablePanel.setBorder(JBUI.Borders.customLine(UIUtils.borderColor(), 1));
-        tablePanel.setAlignmentX(LEFT_ALIGNMENT);
-        add(tablePanel);
-
-        JBScrollPane scrollPane = new JBScrollPane();
-        scrollPane.setBorder(JBUI.Borders.customLine(UIUtils.borderColor(), 0, 0, 0, 1));
-        tablePanel.add(scrollPane, BorderLayout.CENTER);
-
-        JBTable table = new JBTable();
-        table.getEmptyText().setText(emptyText);
-        table.setModel(tableModel);
-        scrollPane.setViewportView(table);
-
-        ActionToolbar actionToolbar = ActionManager.getInstance().createActionToolbar("left", actionGroup, false);
-        JComponent actionToolbarComponent = actionToolbar.getComponent();
-        actionToolbarComponent.setBorder(JBUI.Borders.empty());
-        tablePanel.add(actionToolbarComponent, BorderLayout.EAST);
-
-        return table;
-    }
-
-    private void addTableLabel(String text) {
-        JLabel connectionsLabel = new JLabel(text);
-        connectionsLabel.setAlignmentX(LEFT_ALIGNMENT);
-        connectionsLabel.setBorder(JBUI.Borders.empty(0, 0, 5, 0));
-        add(connectionsLabel);
-    }
-
-    private DefaultTableModel createDefaultTableModel(String[] columns) {
-        DefaultTableModel tableModel = new DefaultTableModel(0, 0) {
-            @Override
-            public boolean isCellEditable(int row, int column) {
-                return false;
-            }
-        };
-        tableModel.setColumnIdentifiers(columns);
-        return tableModel;
-    }
-
-    private void addSonarScannerProperty(Pair<String, String> property) {
-        properties.put(property.first, property.second);
-        propertiesTableModel.addRow(new Object[]{property.first, property.second});
-    }
-
-    private void updateSonarScannerProperty(int selectionIndex, Pair<String, String> property) {
-        properties.replace(property.first, property.second);
-
-        propertiesTableModel.setValueAt(property.second, selectionIndex, 1);
-    }
-
     public void reset() {
+        super.reset();
         ProjectSettings projectSettings = ProjectSettings.getInstance(project);
         connectionNameComboBox.setSelectedItem(projectSettings.getSonarQubeConnectionName());
         severityComboBox.setSelectedItem(projectSettings.getSeverityType());
+        inheritedFromApplicationCheckBox.setSelected(projectSettings.inheritedFromApplication);
 
-        properties.clear();
-        int propertiesTableRowCount = propertiesTableModel.getRowCount();
-        for (int i = propertiesTableRowCount - 1; i >= 0; i--) {
-            propertiesTableModel.removeRow(i);
-        }
         Map<String, String> existProperties = projectSettings.sonarProperties;
         for (Map.Entry<String, String> item : existProperties.entrySet()) {
             properties.put(item.getKey(), item.getValue());
             propertiesTableModel.addRow(new Object[]{item.getKey(), item.getValue()});
         }
-
-        inheritedFromApplicationCheckBox.setSelected(projectSettings.inheritedFromApplication);
     }
 
     public SeverityType getSeverityType() {

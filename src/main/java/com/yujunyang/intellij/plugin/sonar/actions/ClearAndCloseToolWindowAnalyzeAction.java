@@ -21,13 +21,13 @@
 
 package com.yujunyang.intellij.plugin.sonar.actions;
 
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
 import com.yujunyang.intellij.plugin.sonar.core.AnalyzeState;
 import com.yujunyang.intellij.plugin.sonar.messages.MessageBusManager;
 import com.yujunyang.intellij.plugin.sonar.resources.ResourcesLoader;
-import com.yujunyang.intellij.plugin.sonar.service.ProblemCacheService;
 import org.jetbrains.annotations.NotNull;
 
 public class ClearAndCloseToolWindowAnalyzeAction extends AbstractAction {
@@ -52,5 +52,10 @@ public class ClearAndCloseToolWindowAnalyzeAction extends AbstractAction {
             @NotNull ToolWindow toolWindow,
             @NotNull AnalyzeState state) {
         MessageBusManager.publishClear(project);
+    }
+
+    @Override
+    public @NotNull ActionUpdateThread getActionUpdateThread() {
+        return ActionUpdateThread.EDT;
     }
 }

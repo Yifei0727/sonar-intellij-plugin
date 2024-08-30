@@ -21,6 +21,7 @@
 
 package com.yujunyang.intellij.plugin.sonar.actions;
 
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.yujunyang.intellij.plugin.sonar.common.SettingsUtils;
@@ -36,5 +37,10 @@ public class ShowSettingDialogAction extends AnAction {
     @Override
     public void update(@NotNull AnActionEvent e) {
         e.getPresentation().setText(ResourcesLoader.getString("action.settings"));
+    }
+
+    @Override
+    public @NotNull ActionUpdateThread getActionUpdateThread() {
+        return ActionUpdateThread.EDT;
     }
 }

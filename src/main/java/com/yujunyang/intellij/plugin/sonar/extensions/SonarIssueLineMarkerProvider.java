@@ -49,7 +49,6 @@ import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 public class SonarIssueLineMarkerProvider implements LineMarkerProvider {
 
@@ -83,20 +82,21 @@ public class SonarIssueLineMarkerProvider implements LineMarkerProvider {
             return null;
         }
 
-        final SeverityType severityType = Optional.ofNullable(ProjectSettings.getInstance(project).getSeverityType()).orElse(SeverityType.ANY);
-        List<SeverityType> severityTypes = matchedIssues.stream()
-                                                        .map(e -> SeverityType.fromName(e.getSeverity()))
-                                                        .filter(s -> s.severity() >= severityType.severity())
-                                                        .toList();
+        final SeverityType severityType = ProjectSettings.getInstance(project).getSeverityType();
+        List<SeverityType> severityTypes = matchedIssues
+                .stream()
+                .map(e -> SeverityType.fromName(e.getSeverity()))
+                .filter(s -> s.severity() >= severityType.severity())
+                .toList();
         final GutterIconNavigationHandler<PsiElement> navigationHandler = new IssueGutterIconNavigationHandler(matchedIssues, element);
         final TooltipProvider tooltipProvider = new TooltipProvider(matchedIssues);
         if (!severityTypes.isEmpty()) {
             return new LineMarkerInfo<>(element, element.getTextRange(),
-                                        UIUtils.getSeverityIcon(severityTypes),
-                                        tooltipProvider,
-                                        navigationHandler,
-                                        GutterIconRenderer.Alignment.CENTER,
-                                        () -> tooltipProvider.fun(element));
+                    UIUtils.getSeverityIcon(severityTypes),
+                    tooltipProvider,
+                    navigationHandler,
+                    GutterIconRenderer.Alignment.CENTER,
+                    () -> tooltipProvider.fun(element));
         }
         return null;
     }
@@ -153,7 +153,7 @@ public class SonarIssueLineMarkerProvider implements LineMarkerProvider {
         }
 
         private String duplicateInfo(DuplicatedBlocksIssue.Duplicate duplicate) {
-            return String.format("<span>%s</span><span>%s-%s</span>", duplicate.getPath(), duplicate.getStartLine(), duplicate.getEndLine());
+            return String.format("<span>%s</span><span>%s-%s</span>", duplicate.path(), duplicate.startLine(), duplicate.endLine());
         }
     }
 }

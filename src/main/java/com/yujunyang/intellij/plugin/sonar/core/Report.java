@@ -21,17 +21,6 @@
 
 package com.yujunyang.intellij.plugin.sonar.core;
 
-import java.io.File;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.CopyOnWriteArraySet;
-import java.util.stream.Collectors;
-
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiFile;
@@ -49,16 +38,27 @@ import org.sonar.scanner.protocol.output.ScannerReport;
 import org.sonar.scanner.protocol.output.ScannerReportReader;
 import org.sonarsource.scanner.api.LogOutput;
 
+import java.io.File;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.stream.Collectors;
+
 public class Report {
-    private Project project;
-    private File reportDir;
+    private final Project project;
+    private final File reportDir;
     private int bugCount;
     private int codeSmellCount;
     private int vulnerabilityCount;
     private int duplicatedBlocksCount;
     private int securityHotSpotCount;
-    private ConcurrentMap<PsiFile, List<AbstractIssue>> issues;
-    private CopyOnWriteArraySet<String> ignoreRules;
+    private final ConcurrentMap<PsiFile, List<AbstractIssue>> issues;
+    private final CopyOnWriteArraySet<String> ignoreRules;
     private int ignoreIssueCount;
 
     public Report(@NotNull Project project, @NotNull File reportDir) {
@@ -234,7 +234,7 @@ public class Report {
                             issue.getLineEnd()
                     );
                     issue.getDuplicates().forEach(d -> {
-                        if (StringUtil.isEmpty(d.getPath())) {
+                        if (StringUtil.isEmpty(d.path())) {
                             DuplicatedBlocksIssue additionalIssue = new DuplicatedBlocksIssue(
                                     psiFile,
                                     "common-java",
@@ -243,12 +243,12 @@ public class Report {
                                     rule.getType(),
                                     rule.getName(),
                                     rule.getHtmlDesc(),
-                                    d.getStartLine(),
-                                    d.getEndLine()
+                                    d.startLine(),
+                                    d.endLine()
                             );
                             additionalIssue.addDuplicate(duplicateUseCurrentBlock);
                             List<DuplicatedBlocksIssue.Duplicate> otherDuplicates = issue.getDuplicates().stream()
-                                    .filter(n -> !StringUtil.isEmpty(n.getPath()) || n.getStartLine() != d.getStartLine() || n.getEndLine() != d.getEndLine())
+                                    .filter(n -> !StringUtil.isEmpty(n.path()) || n.startLine() != d.startLine() || n.endLine() != d.endLine())
                                     .collect(Collectors.toList());
                             additionalIssue.addDuplicates(otherDuplicates);
                             issues.get(psiFile).add(additionalIssue);
@@ -276,13 +276,12 @@ public class Report {
         try {
             Set<String> languages = new HashSet<>();
             Set<String> sonarScannerLogProfileLanguages = ProblemCacheService.getInstance(project).getProfileLanguages();
-            if (sonarScannerLogProfileLanguages.size() != 0) {
+            if (!sonarScannerLogProfileLanguages.isEmpty()) {
                 languages.addAll(sonarScannerLogProfileLanguages);
             } else {
                 languages.addAll(WorkspaceSettings.getInstance().languages);
             }
-            List<RulesSearchResponse.Rule> rules = new SonarApiImpl(project).getRules(languages.stream().collect(Collectors.toList()));
-            return rules;
+            return new SonarApiImpl(project).getRules(new ArrayList<>(languages));
         } catch (ApiRequestFailedException e) {
             throw new RuntimeException(e.getMessage(), e);
         }

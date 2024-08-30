@@ -21,19 +21,22 @@
 
 package com.yujunyang.intellij.plugin.sonar.extensions;
 
-import java.util.List;
-import java.util.Map;
-import javax.annotation.Nullable;
-
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.ExternalAnnotator;
+import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiFile;
+import com.yujunyang.intellij.plugin.sonar.config.ProjectSettings;
 import com.yujunyang.intellij.plugin.sonar.core.AbstractIssue;
 import com.yujunyang.intellij.plugin.sonar.core.AnalyzeState;
+import com.yujunyang.intellij.plugin.sonar.core.SeverityType;
 import com.yujunyang.intellij.plugin.sonar.service.ProblemCacheService;
 import org.jetbrains.annotations.NotNull;
+
+import javax.annotation.Nullable;
+import java.util.List;
+import java.util.Map;
 
 public class SonarIssueExternalAnnotator extends ExternalAnnotator<SonarIssueExternalAnnotator.AnnotationContext, SonarIssueExternalAnnotator.AnnotationContext> {
 
@@ -71,9 +74,31 @@ public class SonarIssueExternalAnnotator extends ExternalAnnotator<SonarIssueExt
     }
 
     private static void addAnnotation(Project project, PsiFile psiFile, List<AbstractIssue> issues, AnnotationHolder holder) {
-        issues.forEach(n -> {
-            holder.createErrorAnnotation(n.getTextRange(), msg(n));
-        });
+        final ProjectSettings settings = ProjectSettings.getInstance(project);
+        issues.stream()
+                // 筛选重要的问题 避免过多的代码异味提示干扰重要的修复
+                .filter(issue -> settings.isEnabledSeverity(issue.getSeverity())
+                        || issue.getType().equals("BUG")
+                        || issue.getType().equals("VULNERABILITY")
+                        || issue.getType().equals("SECURITY_HOTSPOT")
+                )
+                .forEach(issue -> {
+                    switch (SeverityType.fromName(issue.getSeverity())) {
+                        case BLOCKER:
+                        case CRITICAL:
+                            holder.newAnnotation(HighlightSeverity.ERROR, msg(issue)).range(issue.getTextRange()).create();
+                            break;
+                        case MAJOR:
+                            holder.newAnnotation(HighlightSeverity.WARNING, msg(issue)).range(issue.getTextRange()).create();
+                            break;
+                        case MINOR:
+                            holder.newAnnotation(HighlightSeverity.WEAK_WARNING, msg(issue)).range(issue.getTextRange()).create();
+                            break;
+                        case INFO:
+                            holder.newAnnotation(HighlightSeverity.INFORMATION, msg(issue)).range(issue.getTextRange()).create();
+                            break;
+                    }
+                });
 
     }
 

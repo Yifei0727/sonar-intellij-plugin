@@ -21,17 +21,15 @@
 
 package com.yujunyang.intellij.plugin.sonar.gui.layout;
 
-import java.awt.Component;
-import java.awt.Container;
-import java.awt.Dimension;
-import java.awt.Insets;
-import java.awt.LayoutManager;
+import com.intellij.util.ui.JBUI;
+
+import java.awt.*;
 
 public class SampleVerticalScrollLayout implements LayoutManager {
-    private Insets insets;
+    private final Insets insets;
 
     public SampleVerticalScrollLayout() {
-        this(new Insets(0, 0, 0, 0));
+        this(JBUI.emptyInsets());
     }
 
     public SampleVerticalScrollLayout(Insets insets) {
@@ -92,7 +90,7 @@ public class SampleVerticalScrollLayout implements LayoutManager {
             int y = insets.top;
             int width = parent.getWidth() - insets.left - insets.right;
 
-            for (int i = 0 ; i < membersCount ; i++) {
+            for (int i = 0; i < membersCount; i++) {
                 Component m = parent.getComponent(i);
                 if (m.isVisible()) {
                     Dimension d = m.getPreferredSize();

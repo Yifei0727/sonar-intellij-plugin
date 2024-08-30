@@ -46,7 +46,7 @@ public final class SettingsUtils {
     public static SonarQubeSettings getSonarQubeConnection(@Nonnull Project project) {
         WorkspaceSettings workspaceSettings = WorkspaceSettings.getInstance();
         Set<SonarQubeSettings> connections = workspaceSettings.sonarQubeConnections;
-        if (connections == null || connections.size() == 0) {
+        if (connections == null || connections.isEmpty()) {
             return null;
         }
 

@@ -98,7 +98,7 @@ public class IssueItemPanel extends JBPanel<IssueItemPanel> {
     private JBPanel<IssueItemPanel> createDuplicatePanel(DuplicatedBlocksIssue.Duplicate duplicate) {
         JBPanel<IssueItemPanel> panel = new JBPanel<>(new BorderLayout());
 
-        JBLabel rowRangeLabel = new JBLabel(String.format("[%s-%s]", duplicate.getStartLine(), duplicate.getEndLine()));
+        JBLabel rowRangeLabel = new JBLabel(String.format("[%s-%s]", duplicate.startLine(), duplicate.endLine()));
         rowRangeLabel.setBorder(JBUI.Borders.emptyRight(5));
         panel.add(rowRangeLabel, BorderLayout.WEST);
         rowRangeLabel.setForeground(JBColor.BLUE);
@@ -108,15 +108,15 @@ public class IssueItemPanel extends JBPanel<IssueItemPanel> {
         rowRangeLabel.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                PsiFile psiFile = StringUtil.isEmpty(duplicate.getPath()) ? issue.getPsiFile() : IdeaUtils.getPsiFile(issue.getPsiFile().getProject(), duplicate.getPath());
-                UIUtils.navigateToLine(psiFile, duplicate.getStartLine() - 1);
+                PsiFile psiFile = StringUtil.isEmpty(duplicate.path()) ? issue.getPsiFile() : IdeaUtils.getPsiFile(issue.getPsiFile().getProject(), duplicate.path());
+                UIUtils.navigateToLine(psiFile, duplicate.startLine() - 1);
                 ((Supplier<JBPopup>) (that.getClientProperty("IssueItemPanel.getOwnerPopupFunction"))).get().cancel();
             }
         });
 
         String duplicateFileName = "";
-        if (!StringUtil.isEmpty(duplicate.getPath())) {
-            duplicateFileName = IdeaUtils.getPsiFile(issue.getPsiFile().getProject(), duplicate.getPath()).getName();
+        if (!StringUtil.isEmpty(duplicate.path())) {
+            duplicateFileName = IdeaUtils.getPsiFile(issue.getPsiFile().getProject(), duplicate.path()).getName();
         }
         JBLabel filePathLabel = new JBLabel(duplicateFileName);
         panel.add(filePathLabel, BorderLayout.CENTER);

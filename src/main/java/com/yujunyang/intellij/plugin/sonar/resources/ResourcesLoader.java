@@ -21,18 +21,17 @@
 
 package com.yujunyang.intellij.plugin.sonar.resources;
 
-import java.text.MessageFormat;
-import java.util.Locale;
-import java.util.MissingResourceException;
-import java.util.ResourceBundle;
-import javax.swing.Icon;
-
 import com.intellij.openapi.util.IconLoader;
 import com.yujunyang.intellij.plugin.sonar.config.WorkspaceSettings;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.PropertyKey;
+
+import javax.swing.*;
+import java.text.MessageFormat;
+import java.util.Locale;
+import java.util.MissingResourceException;
+import java.util.ResourceBundle;
 
 public final class ResourcesLoader {
     private static final String ICON_RESOURCES_PATH_PREFIX = "/icons/";
@@ -41,11 +40,12 @@ public final class ResourcesLoader {
     private static final String MESSAGE_KEY_PREFIX = "com.yujunyang.intellij.plugin.sonar.";
 
 
-    private ResourcesLoader() {}
+    private ResourcesLoader() {
+    }
 
     @NotNull
     public static Icon loadIcon(final String fileName) {
-        return IconLoader.getIcon(ICON_RESOURCES_PATH_PREFIX + fileName);
+        return IconLoader.getIcon(ICON_RESOURCES_PATH_PREFIX + fileName, ResourcesLoader.class);
     }
 
     @NotNull
@@ -60,7 +60,7 @@ public final class ResourcesLoader {
             Locale locale = new Locale(uiLanguage);
             BUNDLE = ResourceBundle.getBundle(BUNDLE_PATH, locale);
         } catch (final MissingResourceException e) {
-            throw new MissingResourceException("Missing Resource bundle: " + uiLanguage + ' ',  BUNDLE_PATH, "");
+            throw new MissingResourceException("Missing Resource bundle: " + uiLanguage + ' ', BUNDLE_PATH, "");
         }
 
         return BUNDLE;

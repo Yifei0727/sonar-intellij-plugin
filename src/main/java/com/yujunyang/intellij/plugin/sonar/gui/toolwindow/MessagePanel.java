@@ -21,15 +21,14 @@
 
 package com.yujunyang.intellij.plugin.sonar.gui.toolwindow;
 
-import java.awt.Color;
-import javax.swing.Box;
-import javax.swing.BoxLayout;
-
+import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBPanel;
 
-public class MessagePanel extends JBPanel {
-    private String message;
+import javax.swing.*;
+
+public class MessagePanel extends JBPanel<MessagePanel> {
+    private final String message;
 
     public MessagePanel(String message) {
         this.message = message;
@@ -41,7 +40,7 @@ public class MessagePanel extends JBPanel {
         setLayout(layout);
 
         JBLabel emptyLabel = new JBLabel(message);
-        emptyLabel.setForeground(Color.GRAY);
+        emptyLabel.setForeground(JBColor.GRAY);
         emptyLabel.setAlignmentX(CENTER_ALIGNMENT);
         add(Box.createVerticalGlue());
         add(emptyLabel);

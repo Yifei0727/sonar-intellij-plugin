@@ -21,20 +21,7 @@
 
 package com.yujunyang.intellij.plugin.sonar.gui.toolwindow;
 
-import java.awt.BorderLayout;
-import java.awt.Font;
-import java.util.List;
-import javax.swing.BorderFactory;
-import javax.swing.JComponent;
-import javax.swing.SwingConstants;
-import javax.swing.SwingUtilities;
-
-import com.intellij.openapi.editor.Document;
-import com.intellij.openapi.editor.Editor;
-import com.intellij.openapi.editor.EditorFactory;
-import com.intellij.openapi.editor.EditorSettings;
-import com.intellij.openapi.editor.RangeMarker;
-import com.intellij.openapi.editor.ScrollType;
+import com.intellij.openapi.editor.*;
 import com.intellij.openapi.editor.impl.EditorFactoryImpl;
 import com.intellij.openapi.editor.markup.EffectType;
 import com.intellij.openapi.editor.markup.HighlighterLayer;
@@ -52,8 +39,12 @@ import com.intellij.util.ui.JBUI;
 import com.yujunyang.intellij.plugin.sonar.core.AbstractIssue;
 import com.yujunyang.intellij.plugin.sonar.service.ProjectCloseListener;
 
-public class IssueCodePanel extends JBPanel {
-    private Project project;
+import javax.swing.*;
+import java.awt.*;
+import java.util.List;
+
+public class IssueCodePanel extends JBPanel<IssueCodePanel> {
+    private final Project project;
     private PsiFile lastPsiFile;
     private Editor editor;
 
@@ -78,8 +69,8 @@ public class IssueCodePanel extends JBPanel {
 
         // 使用红框标出问题代码行
         editor.getMarkupModel().removeAllHighlighters();
-        for (int i = 0; i < issues.size(); i++) {
-            addRangeHighlighter(issues.get(i), editor);
+        for (AbstractIssue abstractIssue : issues) {
+            addRangeHighlighter(abstractIssue, editor);
         }
 
         JComponent component = editor.getComponent();

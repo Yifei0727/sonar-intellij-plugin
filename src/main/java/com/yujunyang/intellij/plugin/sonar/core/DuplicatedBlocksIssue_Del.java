@@ -62,9 +62,9 @@ public class DuplicatedBlocksIssue_Del extends AbstractIssue {
 
 
     public static class Block {
-        private int lineStart;
-        private int lineEnd;
-        private List<Duplicate> duplicates;
+        private final int lineStart;
+        private final int lineEnd;
+        private final List<Duplicate> duplicates;
 
         public Block(int lineStart, int lineEnd) {
             this.lineStart = lineStart;
@@ -100,27 +100,6 @@ public class DuplicatedBlocksIssue_Del extends AbstractIssue {
     }
 
 
-    public static class Duplicate {
-        private String path;
-        private int startLine;
-        private int endLine;
-
-        public Duplicate(String path, int startLine, int endLine) {
-            this.path = path;
-            this.startLine = startLine;
-            this.endLine = endLine;
-        }
-
-        public String getPath() {
-            return path;
-        }
-
-        public int getStartLine() {
-            return startLine;
-        }
-
-        public int getEndLine() {
-            return endLine;
-        }
+    public record Duplicate(String path, int startLine, int endLine) {
     }
 }
