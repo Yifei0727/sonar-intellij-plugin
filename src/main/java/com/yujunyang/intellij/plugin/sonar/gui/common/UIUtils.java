@@ -22,25 +22,14 @@
 package com.yujunyang.intellij.plugin.sonar.gui.common;
 
 
-import com.intellij.openapi.editor.Document;
-import com.intellij.openapi.editor.Editor;
-import com.intellij.openapi.editor.EditorFactory;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
-import com.intellij.openapi.fileTypes.FileType;
-import com.intellij.openapi.fileTypes.FileTypeManager;
-import com.intellij.openapi.fileTypes.PlainTextFileType;
-import com.intellij.openapi.fileTypes.UnknownFileType;
-import com.intellij.openapi.ui.ComboBox;
-import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Pair;
 import com.intellij.psi.PsiFile;
 import com.intellij.ui.JBColor;
-import com.intellij.ui.TitledSeparator;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.JBTextArea;
-import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import com.yujunyang.intellij.plugin.sonar.core.SeverityType;
 import com.yujunyang.intellij.plugin.sonar.resources.ResourcesLoader;
@@ -62,83 +51,6 @@ public final class UIUtils {
         UI_LANGUAGES.put("en", "English");
     }
 
-    public static void addLabel(JComponent parent, String text) {
-        JBLabel label = new JBLabel(text);
-        label.setAlignmentX(Component.LEFT_ALIGNMENT);
-        parent.add(label);
-    }
-
-    public static JBTextArea addTextArea(JComponent parent, String text, int maxHeight) {
-        JBTextArea textArea = new JBTextArea();
-        textArea.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-        textArea.setText(text);
-        textArea.setFont(new Font("微软雅黑", Font.PLAIN, 12));
-        textArea.setLineWrap(true);
-        JBScrollPane textAreaScrollPane = new JBScrollPane(textArea);
-        textAreaScrollPane.setAlignmentX(Component.LEFT_ALIGNMENT);
-        textAreaScrollPane.setMaximumSize(new Dimension(Integer.MAX_VALUE, maxHeight));
-        textAreaScrollPane.setMinimumSize(new Dimension(Integer.MAX_VALUE, maxHeight));
-        textAreaScrollPane.setPreferredSize(new Dimension(Integer.MAX_VALUE, maxHeight));
-        parent.add(textAreaScrollPane);
-        return textArea;
-    }
-
-    public static ComboBox addLanguageComboBox(JComponent parent) {
-        List<String> languages = new ArrayList<>();
-        languages.add("Java");
-        languages.add("YAML");
-        languages.add("JSON");
-        languages.add("XML");
-        languages.add("Properties");
-        languages.add("SQL");
-        languages.add("Groovy");
-        languages.add("Kotlin");
-        languages.add("其他");
-
-        ComboBox comboBox = new ComboBox();
-        languages.forEach(n -> {
-            comboBox.addItem(n);
-        });
-        comboBox.setEditable(true);
-        parent.add(comboBox);
-        return comboBox;
-    }
-
-    public static Editor addEditor(JComponent parent, String code, boolean readOnly, String fileType) {
-        Document document = EditorFactory.getInstance().createDocument(code);
-        document.setReadOnly(readOnly);
-
-        Editor editor = EditorFactory.getInstance().createEditor(document);
-        JComponent component = editor.getComponent();
-        component.setAlignmentX(Component.LEFT_ALIGNMENT);
-        component.setMaximumSize(new Dimension(Integer.MAX_VALUE, 300));
-        component.setMinimumSize(new Dimension(Integer.MAX_VALUE, 300));
-        component.setPreferredSize(new Dimension(Integer.MAX_VALUE, 300));
-        parent.add(component);
-        return editor;
-    }
-
-    public static Editor createEditor(String code, boolean readOnly, String fileType) {
-        Document document = EditorFactory.getInstance().createDocument(code);
-        document.setReadOnly(readOnly);
-
-        Editor editor = EditorFactory.getInstance().createEditor(document);
-        return editor;
-    }
-
-    public static void scrollTo(JBScrollPane pane, int position) {
-        switch (position) {
-            case SwingConstants.TOP:
-                pane.getVerticalScrollBar().setValue(0);
-                break;
-            case SwingConstants.BOTTOM:
-                pane.getVerticalScrollBar().setValue(pane.getVerticalScrollBar().getMaximum());
-                break;
-            default:
-                break;
-        }
-    }
-
     public static void setBackgroundRecursively(@NotNull Component component) {
         setBackgroundRecursively(component, UIUtils.backgroundColor());
     }
@@ -155,141 +67,28 @@ public final class UIUtils {
         }
     }
 
-    public static JBTextArea addAndReturnTitledSeparatorTextAreaToBoxLayoutParent(JComponent parent, String title, String text) {
-        addTitledSeparator(parent, title);
-        JBTextArea textArea = createTextArea(text);
-        parent.add(textArea);
-        return textArea;
-    }
-
-    public static JBTextArea createTextArea(String text) {
-        JBTextArea textArea = new JBTextArea();
-        textArea.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createMatteBorder(1, 1, 1, 1, UIUtil.isUnderDarcula() ? Color.gray : Color.LIGHT_GRAY),
-                BorderFactory.createEmptyBorder(5, 5, 5, 5)));
-        textArea.setText(text);
-        textArea.setFont(new Font("微软雅黑", Font.PLAIN, 12));
-        textArea.setLineWrap(true);
-        textArea.setAutoscrolls(true);
-        return textArea;
-    }
-
-    public static TitledSeparator createTitledSeparator(String title) {
-        TitledSeparator titledSeparator = new TitledSeparator(title);
-        titledSeparator.setBorder(JBUI.Borders.empty(0, 0, 5, 0));
-        return titledSeparator;
-    }
-
-    public static void addTitledSeparator(JComponent parent, String title) {
-        parent.add(createTitledSeparator(title));
-    }
-
-    public static ComboBox addAndReturnSnippetTypeComboBox(JComponent parent, String selected) {
-        ComboBox typeComboBox = new ComboBox();
-        typeComboBox.addItem("POM");
-        typeComboBox.addItem("CONFIG");
-        typeComboBox.addItem("CODE");
-        typeComboBox.setSelectedItem(selected);
-        parent.add(typeComboBox);
-        return typeComboBox;
-    }
-
-    public static ComboBox addAndReturnSnippetCodeLanguageComboBox(JComponent parent, String selected) {
-        ComboBox languageComboBox = addLanguageComboBox(parent);
-        languageComboBox.setSelectedItem(selected);
-        return languageComboBox;
-    }
-
-    public static JBPanel addAndReturnScrollContentPane(JComponent parent) {
-        parent.setLayout(new BorderLayout());
-        JBPanel pane = new JBPanel(new BorderLayout());
-        JBScrollPane scrollPane = new JBScrollPane();
-        parent.add(scrollPane, BorderLayout.CENTER);
-        scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-        scrollPane.setViewportView(pane);
-
-        JBPanel contentPane = new JBPanel();
-        contentPane.setBorder(JBUI.Borders.empty(10));
-        BoxLayout layout = new BoxLayout(contentPane, BoxLayout.Y_AXIS);
-        contentPane.setLayout(layout);
-        pane.add(contentPane, BorderLayout.NORTH);
-        return contentPane;
-    }
-
-    public static void addPaneWrappedTipLabel(JComponent parent, String text) {
-        JBPanel labelPane = new JBPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
-        JBLabel label = new JBLabel(text);
-        label.setForeground(JBColor.GRAY);
-        labelPane.add(label);
-        parent.add(labelPane);
-    }
-
-    public static JBLabel createTagLabel(String tag) {
-        JBLabel tagLabel = new JBLabel(tag);
-        tagLabel.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createMatteBorder(1, 1, 1, 1, borderColor()),
-                BorderFactory.createEmptyBorder(0, 2, 0, 2)));
-        tagLabel.setForeground(UIUtils.labelForegroundColor());
-        return tagLabel;
-    }
-
-    public static void showErrorDialogInThread(String message) {
-        SwingUtilities.invokeLater(() -> {
-            Messages.showDialog(message, "提示", new String[]{"确定"}, 0, Messages.getErrorIcon());
-        });
-    }
-
-    public static void showErrorDialog(String message) {
-        Messages.showDialog(message, "提示", new String[]{"确定"}, 0, Messages.getErrorIcon());
-    }
-
-    public static int showConfirmDialog(String message) {
-        return Messages.showDialog(message, "提示",
-                                   new String[]{"确认", "取消"}, 1, Messages.getQuestionIcon());
-    }
-
-    public static void showWarningDialog(String message) {
-        Messages.showDialog(message, "提示", new String[]{"确定"}, 0, Messages.getWarningIcon());
-    }
-
     public static Color borderColor() {
-        if (UIUtil.isUnderDarcula()) {
-            return new Color(81, 81, 81);
-        }
-        return JBColor.LIGHT_GRAY;
+        return UIUtil.getBoundsColor();
     }
 
     public static Color backgroundColor() {
-        return UIUtil.isUnderDarcula() ? new Color(49, 51, 53) : Color.WHITE;
+        return UIUtil.getPanelBackground();
     }
 
     public static Color highlightBackgroundColor() {
 //        return UIUtil.isUnderDarcula() ? new Color(54, 57, 59) : new Color(245, 249, 255);
-        return UIUtil.isUnderDarcula() ? new Color(105, 36, 36) : new Color(255, 234, 234);
+        return new JBColor(new Color(255, 234, 234), new Color(105, 36, 36));
     }
 
     public static Color highlightBorderColor() {
-        return UIUtil.isUnderDarcula() ? new Color(221, 64, 64) : new Color(221, 64, 64);
-    }
-
-    public static Color labelForegroundColor() {
-        return UIUtil.isUnderDarcula() ? new Color(140, 140, 140) : Color.GRAY;
-    }
-
-    public static FileType getFileType(String snippetNameWithExtension) {
-        FileType fileType = FileTypeManager.getInstance().getFileTypeByFileName(snippetNameWithExtension);
-        return fileType == UnknownFileType.INSTANCE ? PlainTextFileType.INSTANCE : fileType;
+        return new JBColor(new Color(221, 64, 64), new Color(221, 64, 64));
     }
 
 
-    public static JBPanel createBorderLayoutPanel() {
-        JBPanel panel = new JBPanel(new BorderLayout());
-        return panel;
+    public static <T extends JBPanel<T>> JBPanel<T> createBorderLayoutPanel() {
+        return new JBPanel<>(new BorderLayout());
     }
 
-    public static JBPanel wrappedInBorderLayoutPanel(JComponent component) {
-        return wrappedInBorderLayoutPanel(component, BorderLayout.WEST);
-    }
 
     public static JBPanel wrappedInBorderLayoutPanel(JComponent component, Object constraints) {
         JBPanel panel = createBorderLayoutPanel();
@@ -297,14 +96,6 @@ public final class UIUtils {
         return panel;
     }
 
-    public static JBPanel wrappedInBorderLayoutPanel(Pair<JComponent, Object>... components) {
-        JBPanel panel = createBorderLayoutPanel();
-        for (int i = 0; i < components.length; i++) {
-            Pair<JComponent, Object> component = components[i];
-            panel.add(component.first, component.second);
-        }
-        return panel;
-    }
 
     public static JBLabel createHorizontalAlignmentCenterLabel(String text) {
         JBLabel ret = new JBLabel(text);
@@ -313,12 +104,12 @@ public final class UIUtils {
     }
 
     public static JBLabel createHorizontalAlignmentCenterLabel(String text, Font font) {
-        JBLabel ret = new JBLabel(text);
-        ret.setHorizontalAlignment(SwingConstants.CENTER);
+        JBLabel ret = createHorizontalAlignmentCenterLabel(text);
         ret.setFont(font);
         return ret;
     }
 
+    @NotNull
     public static <T extends JBPanel<T>> JBPanel<T> createBoxLayoutPanel(int axis) {
         JBPanel<T> panel = new JBPanel<>();
         BoxLayout layout = new BoxLayout(panel, axis);
@@ -326,36 +117,29 @@ public final class UIUtils {
         return panel;
     }
 
+    @NotNull
     public static Pair<String, Icon> typeInfo(String type) {
-        switch (type) {
-            case "BUG":
-                return new Pair<>(ResourcesLoader.getString("issueType.bug"), PluginIcons.BUGS);
-            case "VULNERABILITY":
-                return new Pair<>(ResourcesLoader.getString("issueType.vulnerability"), PluginIcons.VULNERABILITY);
-            case "CODE_SMELL":
-                return new Pair<>(ResourcesLoader.getString("issueType.codeSmell"), PluginIcons.CODE_SMELL);
-            case "SECURITY_HOTSPOT":
-                return new Pair<>(ResourcesLoader.getString("issueType.securityHotspot"), PluginIcons.SECURITY_HOTSPOT);
-            default:
-                return new Pair<>("", null);
-        }
+        return switch (type) {
+            case "BUG" -> new Pair<>(ResourcesLoader.getString("issueType.bug"), PluginIcons.BUGS);
+            case "VULNERABILITY" ->
+                    new Pair<>(ResourcesLoader.getString("issueType.vulnerability"), PluginIcons.VULNERABILITY);
+            case "CODE_SMELL" -> new Pair<>(ResourcesLoader.getString("issueType.codeSmell"), PluginIcons.CODE_SMELL);
+            case "SECURITY_HOTSPOT" ->
+                    new Pair<>(ResourcesLoader.getString("issueType.securityHotspot"), PluginIcons.SECURITY_HOTSPOT);
+            default -> new Pair<>("", null);
+        };
     }
 
+    @NotNull
     public static Pair<String, Icon> severityInfo(String severity) {
-        switch (severity) {
-            case "BLOCKER":
-                return new Pair<>(ResourcesLoader.getString("severityType.blocker"), PluginIcons.BLOCKER);
-            case "CRITICAL":
-                return new Pair<>(ResourcesLoader.getString("severityType.critical"), PluginIcons.CRITICAL);
-            case "MAJOR":
-                return new Pair<>(ResourcesLoader.getString("severityType.major"), PluginIcons.MAJOR);
-            case "MINOR":
-                return new Pair<>(ResourcesLoader.getString("severityType.minor"), PluginIcons.MINOR);
-            case "INFO":
-                return new Pair<>(ResourcesLoader.getString("severityType.info"), PluginIcons.INFO);
-            default:
-                return new Pair<>("", null);
-        }
+        return switch (severity) {
+            case "BLOCKER" -> new Pair<>(ResourcesLoader.getString("severityType.blocker"), PluginIcons.BLOCKER);
+            case "CRITICAL" -> new Pair<>(ResourcesLoader.getString("severityType.critical"), PluginIcons.CRITICAL);
+            case "MAJOR" -> new Pair<>(ResourcesLoader.getString("severityType.major"), PluginIcons.MAJOR);
+            case "MINOR" -> new Pair<>(ResourcesLoader.getString("severityType.minor"), PluginIcons.MINOR);
+            case "INFO" -> new Pair<>(ResourcesLoader.getString("severityType.info"), PluginIcons.INFO);
+            default -> new Pair<>("", null);
+        };
     }
 
     @NotNull
