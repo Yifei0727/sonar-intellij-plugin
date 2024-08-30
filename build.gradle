@@ -6,7 +6,7 @@ apply plugin: 'org.jetbrains.intellij'
 apply plugin: 'java'
 
 group 'com.yujunyang'
-version '0.2.3'
+version '222.202408.5'
 
 repositories {
     maven { url "https://cache-redirector.jetbrains.com/intellij-dependencies" }
